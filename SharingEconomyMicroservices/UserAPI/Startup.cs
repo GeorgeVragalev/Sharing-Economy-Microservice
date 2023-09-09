@@ -1,7 +1,9 @@
-﻿using BLL;
+﻿using System.Configuration;
+using BLL;
 using DAL;
 using DAL.Context;
 using Microsoft.EntityFrameworkCore;
+using ConfigurationManager = Microsoft.Extensions.Configuration.ConfigurationManager;
 
 namespace UserAPI;
 
@@ -17,7 +19,7 @@ public class Startup
     public void ConfigureServices(IServiceCollection serviceCollection)
     {
         serviceCollection.AddDbContext<UserDbContext>(b => b.UseLazyLoadingProxies()
-            .UseNpgsql(@"Data Source=.\\SQLEXPRESS;Initial Catalog=MarketWebsite;Trusted_Connection=True;MultipleActiveResultSets=true"));
+            .UseNpgsql(_configurationManager.GetConnectionString("DefaultConnection")));
 
         serviceCollection.AddSwaggerGen();
 

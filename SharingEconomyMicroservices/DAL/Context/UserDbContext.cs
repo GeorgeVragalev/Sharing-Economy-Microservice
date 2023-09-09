@@ -16,9 +16,4 @@ public class UserDbContext : DbContext
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(UserConfiguration).Assembly);
         base.OnModelCreating(modelBuilder);
     }
-    
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    { 
-        optionsBuilder.UseNpgsql(Environment.GetEnvironmentVariable("DefaultConnection"));
-    }
 }
