@@ -4,5 +4,5 @@ namespace DAL.Repositories.User;
 
 public interface IUserRepository : ICrudRepository<Entity.User>
 {
-    Task<IQueryable<Entity.User>> GetByName(string name);
+    Task<Entity.User?> GetByName(string name);
 }

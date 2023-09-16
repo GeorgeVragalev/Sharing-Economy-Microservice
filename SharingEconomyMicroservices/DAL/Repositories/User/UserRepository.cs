@@ -21,10 +21,9 @@ public class UserRepository : IUserRepository
         return await _genericRepository.GetAll();
     }
 
-    public Task<IQueryable<Entity.User>> GetByName(string name)
+    public Task<Entity.User?> GetByName(string name)
     {
-        var query = _genericRepository.Table;
-        return Task.FromResult(query.Where(it => string.Equals(it.Name, name)));
+        return Task.FromResult(_genericRepository.Table.FirstOrDefault(it => string.Equals(it.Name, name)));
     }
 
     public async Task Insert(Entity.User item)

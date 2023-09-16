@@ -1,4 +1,5 @@
 using DAL.Repositories.User;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace BLL.User;
@@ -6,22 +7,34 @@ namespace BLL.User;
 public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
-
-    public UserService(IUserRepository userRepository)
+    private readonly IPasswordHasher<DAL.Entity.User> _passwordHasher;
+    
+    public UserService(IUserRepository userRepository, IPasswordHasher<DAL.Entity.User> passwordHasher)
     {
         _userRepository = userRepository;
+        _passwordHasher = passwordHasher;
     }
 
     public async Task<DAL.Entity.User?> GetById(int id)
     {
+        if (id <= 0)
+        {
+            return null;
+        }
+        
         var userById = await _userRepository.GetById(id);
 
         return userById;
     }
 
-    public async Task<IList<DAL.Entity.User>> GetByName(string name)
+    public async Task<DAL.Entity.User?> GetByName(string name)
     {
-        return await _userRepository.GetByName(name).Result.ToListAsync();
+        if (string.IsNullOrEmpty(name))
+        {
+            return null;
+        }
+        
+        return await _userRepository.GetByName(name);
     }
 
     public async Task<IList<DAL.Entity.User>> GetAll()
@@ -31,6 +44,10 @@ public class UserService : IUserService
 
     public async Task Insert(DAL.Entity.User user)
     {
+        var hashedPassword = _passwordHasher.HashPassword(user, user.Password);
+        
+        user.Password = hashedPassword;
+        
         await _userRepository.Insert(user);
     }
 
