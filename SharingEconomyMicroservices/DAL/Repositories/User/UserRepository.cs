@@ -21,9 +21,14 @@ public class UserRepository : IUserRepository
         return await _genericRepository.GetAll();
     }
 
-    public Task<Entity.User?> GetByName(string name)
+    public Task<Entity.User?> GetByEmail(string email)
     {
-        return Task.FromResult(_genericRepository.Table.FirstOrDefault(it => string.Equals(it.Name, name)));
+        return Task.FromResult(_genericRepository.Table.FirstOrDefault(it => string.Equals(it.Email, email)));
+    }
+
+    public Task<bool> DoesUserExist(string email)
+    {
+        return Task.FromResult(_genericRepository.Table.Any(user => string.Equals(user.Email, email)));
     }
 
     public async Task Insert(Entity.User item)

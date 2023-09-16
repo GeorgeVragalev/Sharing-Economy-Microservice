@@ -2,6 +2,7 @@ namespace BLL.Authentication;
 
 public interface IAuthenticationService
 {
-    public string GenerateToken(DAL.Entity.User user);
-    public bool ValidateToken(string token);
+    public Task<string> GenerateToken(DAL.Entity.User user);
+    public Task<bool> ValidateToken(string token);
+    public Task<bool> VerifyPassword(string password);
 }

@@ -1,8 +1,9 @@
 using FluentValidation;
+using UserAPI.Models;
 
-namespace DAL.Entity.Validations;
+namespace UserAPI.Validations;
 
-public class UserValidation : AbstractValidator<User>
+public class UserValidation : AbstractValidator<UserModel>
 {
     public UserValidation()
     {

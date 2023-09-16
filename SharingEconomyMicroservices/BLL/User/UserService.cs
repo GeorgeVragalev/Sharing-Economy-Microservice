@@ -1,5 +1,4 @@
 using DAL.Repositories.User;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace BLL.User;
@@ -7,12 +6,10 @@ namespace BLL.User;
 public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
-    private readonly IPasswordHasher<DAL.Entity.User> _passwordHasher;
     
-    public UserService(IUserRepository userRepository, IPasswordHasher<DAL.Entity.User> passwordHasher)
+    public UserService(IUserRepository userRepository)
     {
         _userRepository = userRepository;
-        _passwordHasher = passwordHasher;
     }
 
     public async Task<DAL.Entity.User?> GetById(int id)
@@ -27,14 +24,14 @@ public class UserService : IUserService
         return userById;
     }
 
-    public async Task<DAL.Entity.User?> GetByName(string name)
+    public async Task<DAL.Entity.User?> GetByEmail(string email)
     {
-        if (string.IsNullOrEmpty(name))
+        if (string.IsNullOrEmpty(email))
         {
             return null;
         }
         
-        return await _userRepository.GetByName(name);
+        return await _userRepository.GetByEmail(email);
     }
 
     public async Task<IList<DAL.Entity.User>> GetAll()
@@ -44,8 +41,7 @@ public class UserService : IUserService
 
     public async Task Insert(DAL.Entity.User user)
     {
-        var hashedPassword = _passwordHasher.HashPassword(user, user.Password);
-        
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(user.Password);
         user.Password = hashedPassword;
         
         await _userRepository.Insert(user);
@@ -63,5 +59,10 @@ public class UserService : IUserService
         var userById = await _userRepository.GetById(id);
 
         await _userRepository.Delete(userById ?? throw new InvalidOperationException());
+    }
+
+    public async Task<bool> DoesUserExist(string email)
+    {
+        return await _userRepository.DoesUserExist(email);
     }
 }

@@ -2,9 +2,9 @@
 using BLL.Authentication;
 using BLL.User;
 using DAL.Entity;
-using DAL.Entity.Validations;
 using Microsoft.AspNetCore.Mvc;
 using UserAPI.Models;
+using UserAPI.Validations;
 
 namespace UserAPI.Controllers;
 
@@ -28,7 +28,7 @@ public class UserController : ControllerBase
     [HttpGet("status")]
     public IActionResult Status()
     {
-        return Ok();
+        return Ok("Ok");
     }
     
     #region CRUD
@@ -89,17 +89,37 @@ public class UserController : ControllerBase
     
     #region Auth
     
-    [HttpPost]
+    [HttpPost("validate-token")]
+    public async Task<ActionResult> ValidateToken(string token)
+    {
+        var isValid = await _authenticationService.ValidateToken(token);
+
+        if (isValid)
+        {
+            return Ok(token);
+        }
+
+        return Unauthorized("Invalid token");
+    }
+    
+    [HttpPost("login")]
     public async Task<ActionResult> Login([FromBody] UserLogin userLogin)
     {
-        var user = await _userService.GetByName(userLogin.Username);
+        var user = await _userService.GetByEmail(userLogin.Email);
 
         if (user == null)
         {
-            return NotFound($"User not found with username {userLogin.Username}");
+            return Unauthorized("Wrong login credentials");
         }
 
-        var token = _authenticationService.GenerateToken(user);
+        var login = await _authenticationService.VerifyPassword(userLogin.Password);
+
+        if (!login)
+        {
+            return Unauthorized("Wrong login credentials");
+        }
+
+        var token = await _authenticationService.GenerateToken(user);
 
         if (string.IsNullOrEmpty(token))
         {
@@ -109,17 +129,22 @@ public class UserController : ControllerBase
         return Ok(token);
     }
 
-    [HttpPost]
+    [HttpPost("register")]
     public async Task<ActionResult<User>> Register(UserModel userModel)
     {
         var userValidation = new UserValidation();
-        
-        var user = _mapper.Map<UserModel, User>(userModel);
-        
-        var validationResult = await userValidation.ValidateAsync(user);
-    
+
+        var validationResult = await userValidation.ValidateAsync(userModel);
+
         if (!validationResult.IsValid)
             return BadRequest(validationResult.Errors);
+
+        if (await _userService.DoesUserExist(userModel.Email))
+        {
+            return ValidationProblem("User already exists with this email");
+        }
+        
+        var user = _mapper.Map<UserModel, User>(userModel);
         
         await _userService.Insert(user);
         return Ok(user);

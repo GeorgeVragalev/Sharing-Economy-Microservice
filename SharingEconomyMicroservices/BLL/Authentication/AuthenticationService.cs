@@ -7,9 +7,9 @@ namespace BLL.Authentication;
 
 public class AuthenticationService : IAuthenticationService
 {
-    private readonly string SecretKey = "YourSecretKeyHere";
+    private readonly string SecretKey = "ThisIsASecretKeyThatIsAtLeast32Bytes000";
 
-    public string GenerateToken(DAL.Entity.User user)
+    public Task<string> GenerateToken(DAL.Entity.User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(SecretKey);
@@ -26,10 +26,10 @@ public class AuthenticationService : IAuthenticationService
         };
         
         var token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
+        return Task.FromResult(tokenHandler.WriteToken(token));
     }
 
-    public bool ValidateToken(string token)
+    public Task<bool> ValidateToken(string token)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(SecretKey);
@@ -47,11 +47,13 @@ public class AuthenticationService : IAuthenticationService
             }, out SecurityToken validatedToken);
 
             var jwtToken = (JwtSecurityToken) validatedToken;
-            var apiSignature = jwtToken.Claims.First(x => x.Type == "from_gateway").Value;
+            var apiSignature = jwtToken.Claims.FirstOrDefault(x => x.Type == "from_gateway");
 
-            if (apiSignature == "true")
+            return Task.FromResult(true);
+
+            if (apiSignature?.Value == "true")
             {
-                return true;
+                return Task.FromResult(true);
             }
         }
         catch
@@ -59,6 +61,20 @@ public class AuthenticationService : IAuthenticationService
             // Token validation failed
         }
         
-        return false;
+        return Task.FromResult(false);
+    }
+    
+    public Task<bool> VerifyPassword(string password)
+    {
+        var hashedPassword = HashPassword(password);
+        
+        // Verify a password against the stored hash.
+        return Task.FromResult(BCrypt.Net.BCrypt.Verify(password, hashedPassword));
+    }
+
+    private string HashPassword(string password)
+    {
+        // Automatically creates a salt and hash the password with it.
+        return BCrypt.Net.BCrypt.HashPassword(password);
     }
 }
