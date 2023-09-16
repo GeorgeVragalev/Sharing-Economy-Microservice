@@ -31,7 +31,7 @@ public class UserRepository : IUserRepository
     {
         //clear cache
         //emit a event (EventBus)
-        item.CreatedOnUtc = DateTime.Now;
+        item.CreatedOnUtc = DateTime.UtcNow;
         item.UpdatedOnUtc = item.CreatedOnUtc;
         await _genericRepository.Insert(item);
     }

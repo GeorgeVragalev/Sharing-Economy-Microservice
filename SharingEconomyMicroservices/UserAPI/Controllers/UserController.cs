@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
 using BLL.User;
+using DAL.Entity;
+using DAL.Entity.Validations;
 using Microsoft.AspNetCore.Mvc;
+using UserAPI.Models;
 
 namespace UserAPI.Controllers.API;
 
@@ -65,24 +68,22 @@ public class UserController : ControllerBase
     //     var pagedListModel = _mapper.ToPagedListModel<User, UserDto>(users);
     //     return Ok(pagedListModel);
     // }
-    //
-    // [HttpPost]
-    // public async Task<ActionResult<User>> PostUser(UserDto userDto)
-    // {
-    //     var userValidation = new UserValidation();
-    //     
-    //     var user = _mapper.Map<UserDto, User>(userDto);
-    //     
-    //     var validationResult = await userValidation.ValidateAsync(user);
-    //
-    //     if (!validationResult.IsValid)
-    //         return BadRequest(validationResult.Errors);
-    //     
-    //     await _userService.Insert(user);
-    //     return Ok(user);
-    // }
-    //
-    // [HttpPut("{id}")]
+    [HttpPost]
+    public async Task<ActionResult<User>> PostUser(UserModel userModel)
+    {
+        var userValidation = new UserValidation();
+        
+        var user = _mapper.Map<UserModel, User>(userModel);
+        
+        var validationResult = await userValidation.ValidateAsync(user);
+    
+        if (!validationResult.IsValid)
+            return BadRequest(validationResult.Errors);
+        
+        await _userService.Insert(user);
+        return Ok(user);
+    }
+
     // public async Task<IActionResult> PutUser(int id, UserDto userDto)
     // {
     //     if (id != userDto.Id)

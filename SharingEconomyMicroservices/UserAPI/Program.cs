@@ -15,6 +15,8 @@ startup.ConfigureServices(builder.Services);
 
 var app = builder.Build();
 
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 startup.ConfigurePipeline(app);
 
 app.Run();
