@@ -1,0 +1,15 @@
+version: '3'
+services:
+  userapi:
+    build:
+      context: ./UserMicroservice/UserAPI
+      dockerfile: Dockerfile
+    ports:
+      - "5148:5148"
+
+  apigateway:
+    build: ./APIGateWay
+    ports:
+      - "5000:5000"
+    depends_on:
+      - userapi
