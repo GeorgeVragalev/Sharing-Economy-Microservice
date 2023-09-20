@@ -7,20 +7,29 @@ from hashlib import sha256
 app = Flask(__name__)
 
 # Initialize Redis
-r = redis.Redis(host='localhost', port=6379, db=0)  # Assume Redis is running as 'redis-service' in Kubernetes
+r = redis.Redis(host='localhost', port=6379, db=0)
 
 # Initialize Semaphore for limiting concurrency
 sem = Semaphore(10)
 
+# Service registry for local service discovery
+service_registry = {
+    "user": "http://localhost:5148/api/user",
+    "inventory": "http://localhost:5149/api/catalog",
+}
+
+def discover_service(service_name):
+    return service_registry.get(service_name, None)
 
 def cache_key(action, payload):
     """Generate a cache key by hashing the action and payload."""
     return sha256(f"{action}{str(payload)}".encode()).hexdigest()
 
-
 @app.route('/api/<service>/<action>', methods=['GET', 'POST'])
 def generic_service(service, action):
-    service_url = f"http://{service}-service:8080"  # Use DNS resolution in Kubernetes
+    service_url = discover_service(service)
+    if service_url is None:
+        return jsonify({"error": "Service not found"}), 404
 
     key = cache_key(action, request.json if request.method == 'POST' else request.args)
 
@@ -39,8 +48,7 @@ def generic_service(service, action):
             # Cache the result with a TTL of 60 seconds
             r.setex(key, 60, response.text)
 
-    return (response.text, response.status_code, response.headers.items())
-
+    return response.text, response.content
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
