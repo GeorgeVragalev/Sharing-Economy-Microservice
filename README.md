@@ -1,4 +1,8 @@
-## Project outline
+
+
+## Sharing Economy Platform for sharing items
+
+
 
 ### Project relevance
 #### Complexity and Independence:
@@ -13,7 +17,7 @@ Each service can be scaled independently based on its needs and demand, which is
 Microservices enable the use of different technology stacks for different services (e.g., Python for API Gateway, and C# .Net for user and inventory services), allowing the selection of the most suitable technologies for each service’s needs.
 #### Resilience and Fault Isolation:
 
-In a monolithic architecture, a failure in one component can potentially bring down the entire application. Microservices architecture helps in isolating faults to the affected service, reducing the blast radius of failures and improving ov`erall system resilience.
+In a monolithic architecture, a failure in one component can potentially bring down the entire application. Microservices architecture helps in isolating faults to the affected service, reducing the blast radius of failures and improving overall system resilience.
 
 ### Service boundaries
 
