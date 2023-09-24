@@ -4,6 +4,7 @@ using InventoryAPI.Validations;
 using InventoryBLL;
 using InventoryBLL.Item;
 using InventoryDAL.Entity;
+using InventoryDAL.Entity.Enums;
 using InventoryDAL.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
@@ -105,16 +106,27 @@ public class ItemController : ControllerBase
     [HttpPost("reserve")]
     public async Task<IActionResult> Reserve(int id)
     {
+        return await ChangeStatus(id, InventoryDAL.Entity.Enums.Status.Reserved);
+    }
+    
+    [HttpPost("change-status")]
+    public async Task<IActionResult> ChangeStatus(int id, string status)
+    {
+        var isValidStatus = Enum.TryParse<Status>(status, out var newStatus);
+
+        if (!isValidStatus)
+        {
+            return BadRequest($"Status: {status} doesn't exist");
+        }
+        
+        return await ChangeStatus(id, newStatus);
+    }
+
+    private async Task<IActionResult> ChangeStatus(int id, Status newStatus)
+    {
         try
         {
-            var item = await _itemService.GetById(id);
-            if (item == null)
-            {
-                _logger.LogWarning("Item doesn't exist");
-                return NotFound("Item doesn't exist");
-            }
-        
-            await _itemService.Reserve(id);
+            await _itemService.ChangeStatus(id, newStatus);
             return Ok(id);
         }
         catch (ItemReservedException)

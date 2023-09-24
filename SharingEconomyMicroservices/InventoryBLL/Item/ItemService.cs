@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using InventoryDAL.Entity.Enums;
 using InventoryDAL.Repositories.Item;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,18 @@ public class ItemService : IItemService
     {
         _itemRepository = itemRepository;
     }
+        
+    public async Task<bool> Reserve(int id)
+    {
+        return await _itemRepository.ChangeItemStatusAsync(id, Status.Reserved);
+    }
+
+    public async Task<bool> ChangeStatus(int id, Status status)
+    {
+        return await _itemRepository.ChangeItemStatusAsync(id, status);
+    }
+    
+    #region CRUD
 
     public async Task<InventoryDAL.Entity.Item?> GetById(int id)
     {
@@ -53,8 +66,5 @@ public class ItemService : IItemService
         await _itemRepository.Delete(itemById ?? throw new InvalidOperationException());
     }
 
-    public async Task<bool> Reserve(int id)
-    {
-        return await _itemRepository.ReserveItemAsync(id);
-    }
+    #endregion
 }

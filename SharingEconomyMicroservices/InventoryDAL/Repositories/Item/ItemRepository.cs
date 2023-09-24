@@ -50,7 +50,7 @@ public class ItemRepository : IItemRepository
         return await _genericRepository.DoesExist(filter);
     }
 
-    public async Task<bool> ReserveItemAsync(int itemId)
+    public async Task<bool> ChangeItemStatusAsync(int itemId, Status status)
     {
         return await _genericRepository.ExecuteInTransactionAsync(async () =>
         {
@@ -58,7 +58,7 @@ public class ItemRepository : IItemRepository
 
             if (item != null && item.IsAvailable())
             {
-                item.Status = Status.Reserved;
+                item.Status = status;
             }
             else
             {
