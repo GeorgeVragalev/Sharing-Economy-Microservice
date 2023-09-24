@@ -1,4 +1,6 @@
-﻿using InventoryDAL.Entity.Enums;
+﻿using System.Linq.Expressions;
+using InventoryDAL.Entity.Enums;
+using InventoryDAL.Helpers;
 using InventoryDAL.Repositories.Shared;
 
 namespace InventoryDAL.Repositories.Item;
@@ -11,7 +13,7 @@ public class ItemRepository : IItemRepository
     {
         _genericRepository = genericRepository;
     }
-    
+
     public async Task<Entity.Item?> GetById(int id)
     {
         return await _genericRepository.GetById(id);
@@ -22,21 +24,18 @@ public class ItemRepository : IItemRepository
         return await _genericRepository.GetAll();
     }
 
-    public Task<bool> DoesExistByName(string name)
+    public async Task<IQueryable<Entity.Item>> GetFiltered(Expression<Func<Entity.Item, bool>> filter)
     {
-        return Task.FromResult(_genericRepository.Table.Any(item => string.Equals(item.Name, name)));
+        return await _genericRepository.GetFiltered(filter);
     }
 
     public async Task Insert(Entity.Item item)
     {
-        item.CreatedOnUtc = DateTime.UtcNow;
-        item.UpdatedOnUtc = item.CreatedOnUtc;
         await _genericRepository.Insert(item);
     }
 
     public async Task Update(Entity.Item item)
     {
-        item.UpdatedOnUtc = DateTime.Now;
         await _genericRepository.Update(item);
     }
 
@@ -45,10 +44,26 @@ public class ItemRepository : IItemRepository
         await _genericRepository.Delete(item);
     }
 
-    public async Task<bool> IsAvailable(int id)
+    public async Task<bool> DoesExist(Expression<Func<Entity.Item, bool>> filter)
     {
-        var item = await GetById(id);
+        return await _genericRepository.DoesExist(filter);
+    }
 
-        return item?.Status == Status.Available;
+    public async Task ReserveItemAsync(int itemId)
+    {
+        await _genericRepository.ExecuteInTransactionAsync(async () =>
+        {
+            var item = await _genericRepository.GetById(itemId);
+
+            if (item != null && item.IsAvailable())
+            {
+                item.Status = Status.Reserved;
+            }
+            else
+            {
+                // Rollback will happen automatically if an exception is thrown
+                throw new InvalidOperationException("Item is not available.");
+            }
+        });
     }
 }

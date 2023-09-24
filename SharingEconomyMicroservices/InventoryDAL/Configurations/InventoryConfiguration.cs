@@ -8,7 +8,7 @@ public class InventoryConfiguration : IEntityTypeConfiguration<Item>
 {
     public void Configure(EntityTypeBuilder<Item> builder)
     {
-        builder.ToTable("Users");
+        builder.ToTable("Inventory");
 
         builder.Property(e => e.Name)
             .IsRequired();

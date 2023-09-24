@@ -24,16 +24,6 @@ public class ItemService : IItemService
         return item;
     }
 
-    public async Task<bool> GetByEmail(int id)
-    {
-        if (id <= 0)
-        {
-            return false;
-        }
-        
-        return await _itemRepository.IsAvailable(id);
-    }
-
     public async Task<IList<InventoryDAL.Entity.Item>> GetAll()
     {
         return await _itemRepository.GetAll().Result.ToListAsync();
@@ -43,7 +33,6 @@ public class ItemService : IItemService
     {
         await _itemRepository.Insert(item);
     }
-
 
     public async Task Update(int id, InventoryDAL.Entity.Item item)
     {
@@ -60,6 +49,6 @@ public class ItemService : IItemService
 
     public async Task<bool> DoesExist(string name)
     {
-        return await _itemRepository.DoesExistByName(name);
+        return await _itemRepository.DoesExist(i => string.Equals(i.Name, name));
     }
 }
