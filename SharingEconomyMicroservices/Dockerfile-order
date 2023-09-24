@@ -1,20 +1,27 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
+﻿FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build-env
 WORKDIR /app
+
 EXPOSE 80
 EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
-WORKDIR /src
-COPY ["OrderAPI/OrderAPI.csproj", "OrderAPI/"]
-RUN dotnet restore "OrderAPI/OrderAPI.csproj"
-COPY . .
-WORKDIR "/src/OrderAPI"
-RUN dotnet build "OrderAPI.csproj" -c Release -o /app/build
+# Copy csproj and restore as distinct layers
+COPY ./OrderAPI/OrderAPI.csproj ./OrderAPI/
+COPY ./OrderBLL/OrderBLL.csproj ./OrderBLL/
+COPY ./OrderDAL/OrderDAL.csproj ./OrderDAL/
 
-FROM build AS publish
-RUN dotnet publish "OrderAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet restore ./OrderAPI/OrderAPI.csproj
 
-FROM base AS final
+# Copy everything else and build
+COPY ./OrderAPI/ ./OrderAPI/
+COPY ./OrderBLL/ ./OrderBLL/
+COPY ./OrderDAL/ ./OrderDAL/
+
+# Build and publish
+WORKDIR /app/OrderAPI
+RUN dotnet publish -c Release -o out
+
+# Build runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:7.0
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build-env /app/OrderAPI/out .
 ENTRYPOINT ["dotnet", "OrderAPI.dll"]
