@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using InventoryAPI.Models;
 using InventoryAPI.Validations;
-using InventoryBLL;
 using InventoryBLL.Item;
 using InventoryDAL.Entity;
 using InventoryDAL.Entity.Enums;

@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using InventoryDAL.Entity.Enums;
 
-namespace InventoryBLL;
+namespace InventoryBLL.Item;
 
 public interface IItemService
 {

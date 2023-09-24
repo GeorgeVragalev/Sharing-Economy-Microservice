@@ -55,8 +55,7 @@ public class ItemService : IItemService
 
     public async Task Update(int id, InventoryDAL.Entity.Item item)
     {
-        var itemInDb = await _itemRepository.GetById(id);
-        await _itemRepository.Update(itemInDb ?? throw new InvalidOperationException());
+        await _itemRepository.Update(item ?? throw new InvalidOperationException());
     }
 
     public async Task Delete(int id)
