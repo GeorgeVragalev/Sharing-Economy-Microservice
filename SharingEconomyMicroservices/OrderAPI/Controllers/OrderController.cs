@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using OrderAPI.Helpers;
 using OrderAPI.Models;
 using OrderAPI.Validations;
 using OrderBLL.Order;
 using OrderDAL.Entity;
-using OrderDAL.Entity.Enums;
 using OrderDAL.Exceptions;
 
 namespace OrderAPI.Controllers;
@@ -29,9 +29,7 @@ public class OrderController : ControllerBase
     {
         return Ok("Ok");
     }
-
-    #region CRUD
-
+    
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -51,7 +49,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpPost("create")]
-    public async Task<ActionResult<Order>> Create(OrderModel orderModel)
+    public async Task<ActionResult<Order>> PlaceOrder(PlaceOrderRequestModel orderModel)
     {
         var orderValidation = new OrderValidation();
 
@@ -60,9 +58,12 @@ public class OrderController : ControllerBase
         if (!validationResult.IsValid)
             return BadRequest(validationResult.Errors);
 
-        var order = _mapper.Map<OrderModel, Order>(orderModel);
+        var order = _mapper.Map<PlaceOrderRequestModel, Order>(orderModel);
 
-        await _orderService.Insert(order);
+        order.MapOrder(orderModel);
+        
+        await _orderService.PlaceOrder(order);
+        
         return Ok(order);
     }
 
@@ -116,45 +117,6 @@ public class OrderController : ControllerBase
         {
             _logger.LogWarning($"Couldn't delete order with id: {id}", e);
             return Problem($"Couldn't delete order with id: {id}. {e.Message}");
-        }
-    }
-
-    #endregion
-
-    [HttpPost("reserve")]
-    public async Task<IActionResult> Reserve(int id)
-    {
-        return await ChangeStatus(id, OrderStatus.Reserved);
-    }
-
-    [HttpPost("change-status")]
-    public async Task<IActionResult> ChangeStatus(int id, string status)
-    {
-        var isValidStatus = Enum.TryParse<OrderStatus>(status, out var newStatus);
-
-        if (!isValidStatus)
-        {
-            return BadRequest($"Status: {status} doesn't exist");
-        }
-
-        return await ChangeStatus(id, newStatus);
-    }
-
-    private async Task<IActionResult> ChangeStatus(int id, OrderStatus newStatus)
-    {
-        try
-        {
-            await _orderService.ChangeStatus(id, newStatus);
-            return Ok(id);
-        }
-        catch (OrderNotFoundException)
-        {
-            return Ok("Order is already reserved");
-        }
-        catch (Exception e)
-        {
-            _logger.LogWarning("Something failed", e);
-            return Problem($"Something failed. {e.Message}");
         }
     }
 }

@@ -17,6 +17,8 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection serviceCollection)
     {
+        serviceCollection.AddHttpClient();
+        
         serviceCollection.AddDbContext<OrderDbContext>(b => b.UseLazyLoadingProxies()
             .UseNpgsql(_configurationManager.GetConnectionString("DefaultConnection")));
 

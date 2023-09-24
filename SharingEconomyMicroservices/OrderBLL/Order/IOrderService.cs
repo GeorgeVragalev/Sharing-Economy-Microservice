@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using OrderBLL.Models;
 using OrderDAL.Entity.Enums;
 
 namespace OrderBLL.Order;
@@ -11,6 +12,6 @@ public interface IOrderService
     Task Insert(OrderDAL.Entity.Order order);
     Task Update(int id, OrderDAL.Entity.Order order);
     Task Delete(int id);
-    Task<bool> Reserve(int id);
+    Task<ResponseMessage> PlaceOrder(OrderDAL.Entity.Order order);
     Task<bool> ChangeStatus(int id, OrderStatus status);
 }

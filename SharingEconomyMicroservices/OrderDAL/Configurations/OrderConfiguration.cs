@@ -4,13 +4,16 @@ using OrderDAL.Entity;
 
 namespace OrderDAL.Configurations;
 
-public class InventoryConfiguration : IEntityTypeConfiguration<Order>
+public class OrderConfiguration : IEntityTypeConfiguration<Order>
 {
     public void Configure(EntityTypeBuilder<Order> builder)
     {
         builder.ToTable("Order");
 
         builder.Property(e => e.ItemId)
+            .IsRequired();
+        
+        builder.Property(e => e.UserId)
             .IsRequired();
         
         builder.HasIndex(e => e.Id).IsUnique();
