@@ -2,6 +2,6 @@ namespace InventoryDAL.Entity.Enums;
 
 public enum Status
 {
-    Available = 1,
-    Reserved = 2
+    Available = 0,
+    Reserved = 1
 }

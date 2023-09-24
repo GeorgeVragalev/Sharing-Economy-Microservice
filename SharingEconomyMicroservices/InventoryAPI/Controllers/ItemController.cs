@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using InventoryAPI.Models;
 using InventoryAPI.Validations;
+using InventoryBLL;
 using InventoryBLL.Item;
 using InventoryDAL.Entity;
+using InventoryDAL.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryAPI.Controllers;
@@ -99,4 +101,30 @@ public class ItemController : ControllerBase
     }
 
     #endregion
+    
+    [HttpPost("reserve")]
+    public async Task<IActionResult> Reserve(int id)
+    {
+        try
+        {
+            var item = await _itemService.GetById(id);
+            if (item == null)
+            {
+                _logger.LogWarning("Item doesn't exist");
+                return NotFound("Item doesn't exist");
+            }
+        
+            await _itemService.Reserve(id);
+            return Ok(id);
+        }
+        catch (ItemReservedException)
+        {
+            return Ok("Item is already reserved");
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning("Something failed", e);
+            return Problem($"Something failed. {e.Message}");
+        }
+    }
 }

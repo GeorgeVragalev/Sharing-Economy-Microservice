@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using InventoryDAL.Entity.Enums;
+using InventoryDAL.Exceptions;
 using InventoryDAL.Helpers;
 using InventoryDAL.Repositories.Shared;
 
@@ -49,9 +50,9 @@ public class ItemRepository : IItemRepository
         return await _genericRepository.DoesExist(filter);
     }
 
-    public async Task ReserveItemAsync(int itemId)
+    public async Task<bool> ReserveItemAsync(int itemId)
     {
-        await _genericRepository.ExecuteInTransactionAsync(async () =>
+        return await _genericRepository.ExecuteInTransactionAsync(async () =>
         {
             var item = await _genericRepository.GetById(itemId);
 
@@ -62,7 +63,7 @@ public class ItemRepository : IItemRepository
             else
             {
                 // Rollback will happen automatically if an exception is thrown
-                throw new InvalidOperationException("Item is not available.");
+                throw new ItemReservedException("Item is not available.");
             }
         });
     }

@@ -7,5 +7,5 @@ public interface IGenericRepository<TEntity> : ICrudRepository<TEntity> where TE
 {
     IQueryable<TEntity> Table { get; }
     IDbContextTransaction BeginTransaction();
-    Task ExecuteInTransactionAsync(Func<Task> action);
+    Task<bool> ExecuteInTransactionAsync(Func<Task> action);
 }

@@ -4,5 +4,5 @@ namespace InventoryDAL.Repositories.Item;
 
 public interface IItemRepository : ICrudRepository<Entity.Item>
 {
-    Task ReserveItemAsync(int itemId);
+    Task<bool> ReserveItemAsync(int itemId);
 }

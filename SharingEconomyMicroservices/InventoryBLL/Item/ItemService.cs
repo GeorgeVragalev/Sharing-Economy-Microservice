@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using InventoryDAL.Repositories.Item;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,6 +29,11 @@ public class ItemService : IItemService
     {
         return await _itemRepository.GetAll().Result.ToListAsync();
     }
+    
+    public async Task<IList<InventoryDAL.Entity.Item>> GetFiltered(Expression<Func<InventoryDAL.Entity.Item, bool>> filter)
+    {
+        return await _itemRepository.GetFiltered(filter).Result.ToListAsync();
+    }
 
     public async Task Insert(InventoryDAL.Entity.Item item)
     {
@@ -47,8 +53,8 @@ public class ItemService : IItemService
         await _itemRepository.Delete(itemById ?? throw new InvalidOperationException());
     }
 
-    public async Task<bool> DoesExist(string name)
+    public async Task<bool> Reserve(int id)
     {
-        return await _itemRepository.DoesExist(i => string.Equals(i.Name, name));
+        return await _itemRepository.ReserveItemAsync(id);
     }
 }

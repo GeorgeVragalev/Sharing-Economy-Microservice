@@ -18,7 +18,7 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
         _dbSet = inventoryDbContext.Set<TEntity>();
     }
     
-    public async Task ExecuteInTransactionAsync(Func<Task> action)
+    public async Task<bool> ExecuteInTransactionAsync(Func<Task> action)
     {
         using (var transaction = await _inventoryDbContext.Database.BeginTransactionAsync())
         {
@@ -27,6 +27,8 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
                 await action();
                 await transaction.CommitAsync();
                 await _inventoryDbContext.SaveChangesAsync();
+
+                return true;
             }
             catch (Exception)
             {
