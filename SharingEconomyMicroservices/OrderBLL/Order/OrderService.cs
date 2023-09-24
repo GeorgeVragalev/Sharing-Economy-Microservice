@@ -25,7 +25,7 @@ public class OrderService : IOrderService
 
     public async Task<ResponseMessage> PlaceOrder(OrderDAL.Entity.Order order)
     {
-        var json = JsonConvert.SerializeObject(order, Formatting.Indented);
+        var json = JsonConvert.SerializeObject(order.ItemId, Formatting.Indented);
 
         var url = $"{GlobalConstants.InventoryUrl}/reserve";
         

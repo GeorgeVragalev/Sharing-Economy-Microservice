@@ -103,7 +103,7 @@ public class ItemController : ControllerBase
     #endregion
     
     [HttpPost("reserve")]
-    public async Task<IActionResult> Reserve(int id)
+    public async Task<IActionResult> Reserve([FromBody] int id)
     {
         return await ChangeStatus(id, InventoryDAL.Entity.Enums.Status.Reserved);
     }
