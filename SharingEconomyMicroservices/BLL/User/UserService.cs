@@ -41,8 +41,8 @@ public class UserService : IUserService
 
     public async Task Insert(DAL.Entity.User user)
     {
-        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(user.Password);
-        user.Password = hashedPassword;
+        // var hashedPassword = BCrypt.Net.BCrypt.HashPassword(user.Password);
+        // user.Password = hashedPassword;
         
         await _userRepository.Insert(user);
     }
