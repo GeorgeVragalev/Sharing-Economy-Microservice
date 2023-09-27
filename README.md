@@ -52,3 +52,9 @@ Service discovery and load balancing as well as regular health checks will event
 For the service load I might consider other approaches for load balancing.
 
 All requests will be sent using http protocols.
+
+
+To run run the docker compose
+to create script for migrations dotnet ef migrations script > output.sql
+Connect to dbs and apply each migration manually
+then you can make requests
