@@ -1,14 +1,8 @@
-version: '3'
-
-networks:
-  dev:
-    driver: bridge
+version: '3.8'
 
 services:
-  inventoryapi:
-    depends_on: 
-      - "app_db"
-    container_name: "inventory-cotnainer"
+  inventory-service:
+    container_name: "inventory-container"
     ports:
       - "5217:80"
     build:
@@ -17,12 +11,12 @@ services:
     environment:
       - ConnectionStrings__DefaultConnection=User ID=postgres;Password=postgres;Server=app_db;Port=5432;Database=InventoryAPI; IntegratedSecurity=true;Pooling=true;
       - ASPNETCORE_URLS=http://+:80
-    networks:
-      - dev
+    depends_on: 
+      - inventory-db
   
-  app_db:
+  inventory-db:
     image: postgres:latest
-    container_name: "app_db"
+    container_name: "inventory-db"
     environment: 
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -32,11 +26,42 @@ services:
     restart: "always"
     volumes:
       - app_data:/var/lib/postgresql/data
-    networks: 
-      - dev
-volumes: 
-  app_data:
-    
+
+
+  order-service:
+    container_name: "order-container"
+    ports:
+      - "5243:80"
+    build:
+      context: ./SharingEconomyMicroservices
+      dockerfile: Dockerfile.order
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=order-db;Port=5432;Database=OrderAPI;Username=postgres;Password=example
+      - ASPNETCORE_URLS=http://+:80
+    depends_on:
+      - order-db
+
+  order-db:
+    image: postgres:latest
+    container_name: "order-db"
+    environment:
+      - POSTGRES_DB=OrderAPI
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5434:5432"
+    restart: "always"
+    volumes:
+      - order-db-data:/var/lib/postgresql/data
+
+volumes:
+  inventory-db-data:
+  order-db-data:
+
+networks:
+  default:
+    external:
+      name: nginx-network 
 
 #  apigateway:
 #    build: ./APIGateWay
