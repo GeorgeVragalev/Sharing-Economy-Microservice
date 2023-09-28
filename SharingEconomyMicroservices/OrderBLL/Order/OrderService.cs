@@ -44,7 +44,7 @@ public class OrderService : IOrderService
 
         return new ResponseMessage()
         {
-            Message = "Successfully place an order"
+            Message = $"Successfully placed an order with id {order.Id}"
         };
     }
 
