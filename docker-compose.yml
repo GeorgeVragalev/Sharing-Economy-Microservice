@@ -9,10 +9,12 @@ services:
       context: ./SharingEconomyMicroservices
       dockerfile: Dockerfile-inventory
     environment:
-      - ConnectionStrings__DefaultConnection=User ID=postgres;Password=postgres;Server=localhost;Port=5433;Database=InventoryAPI; IntegratedSecurity=true;Pooling=true;
+      - ConnectionStrings__DefaultConnection=Host=inventory-db;Username=postgres;Password=postgres;Port=5432;Database=InventoryAPI;Pooling=true;
       - ASPNETCORE_URLS=http://+:80
     depends_on: 
       - inventory-db
+    networks:
+      - shared_app_network
   
   inventory-db:
     image: postgres:latest
@@ -26,6 +28,8 @@ services:
     restart: "always"
     volumes:
       - inventory-db-data:/var/lib/postgresql/data
+    networks:
+      - shared_app_network
 
 
   order-service:
@@ -36,10 +40,12 @@ services:
       context: ./SharingEconomyMicroservices
       dockerfile: Dockerfile-order
     environment:
-      - ConnectionStrings__DefaultConnection=User ID=postgres;Password=postgres;Server=localhost;Port=5433;Database=OrderAPI; IntegratedSecurity=true;Pooling=true;
+      - ConnectionStrings__DefaultConnection=Host=order-db;Username=postgres;Password=postgres;Port=5432;Database=OrderAPI;Pooling=true;
       - ASPNETCORE_URLS=http://+:80
     depends_on:
       - order-db
+    networks:
+      - shared_app_network
 
   order-db:
     image: postgres:latest
@@ -53,12 +59,27 @@ services:
     restart: "always"
     volumes:
       - order-db-data:/var/lib/postgresql/data
+    networks:
+      - shared_app_network
+
+
+  api-gateway:
+    container_name: "api-gateway"
+    ports:
+      - "5000:5000"
+    build:
+      context: ./APIGateway
+      dockerfile: Dockerfile
+    depends_on:
+      - inventory-service
+      - order-service
+    networks:
+      - shared_app_network
 
 volumes:
   inventory-db-data:
   order-db-data:
 
 networks:
-  default:
-    external:
-      name: nginx-network
+  shared_app_network:
+    driver: bridge

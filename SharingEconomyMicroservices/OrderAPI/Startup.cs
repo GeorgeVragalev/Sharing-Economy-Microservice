@@ -2,6 +2,7 @@
 using OrderBLL;
 using OrderDAL;
 using OrderDAL.Context;
+using Polly;
 using ConfigurationManager = Microsoft.Extensions.Configuration.ConfigurationManager;
 
 namespace OrderAPI;
@@ -51,19 +52,31 @@ public class Startup
 
     public void ApplyMigrations(IServiceProvider serviceProvider)
     {
-        // Here we are manually starting the service scope to apply migrations
         using var scope = serviceProvider.CreateScope();
-        
         var services = scope.ServiceProvider;
+        var logger = services.GetRequiredService<ILogger<Startup>>();
+
         try
         {
-            var context = services.GetRequiredService<OrderDbContext>();
-            context.Database.Migrate();
-            Console.WriteLine("Migrated order db");
+            var policy = Policy.Handle<Exception>()
+                .WaitAndRetry(new[]
+                {
+                    TimeSpan.FromSeconds(5),
+                    TimeSpan.FromSeconds(10),
+                    TimeSpan.FromSeconds(15),
+                });
+
+            policy.Execute(() =>
+            {
+                var context = services.GetRequiredService<OrderDbContext>();
+                context.Database.Migrate();
+            });
+
+            logger.LogInformation("Migrated order db");
         }
         catch (Exception ex)
         {
-            Console.WriteLine("An error occurred while migrating the database: " + ex.Message);
+            logger.LogError(ex, "An error occurred while migrating the order database");
         }
     }
 }

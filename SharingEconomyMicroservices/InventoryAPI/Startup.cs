@@ -2,6 +2,7 @@
 using InventoryDAL;
 using InventoryDAL.Context;
 using Microsoft.EntityFrameworkCore;
+using Polly;
 using ConfigurationManager = Microsoft.Extensions.Configuration.ConfigurationManager;
 
 namespace InventoryAPI;
@@ -24,7 +25,6 @@ public class Startup
 
         serviceCollection.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-        //add scoped in another file
         serviceCollection.AddDal();
         serviceCollection.AddBll();
 
@@ -46,22 +46,34 @@ public class Startup
 
         app.MapControllers();
     }
-    
+
     public void ApplyMigrations(IServiceProvider serviceProvider)
     {
-        // Here we are manually starting the service scope to apply migrations
         using var scope = serviceProvider.CreateScope();
-        
         var services = scope.ServiceProvider;
+        var logger = services.GetRequiredService<ILogger<Startup>>();
+
         try
         {
-            var context = services.GetRequiredService<InventoryDbContext>();
-            context.Database.Migrate();
-            Console.WriteLine("Migrated inventory db");
+            var policy = Policy.Handle<Exception>()
+                .WaitAndRetry(new[]
+                {
+                    TimeSpan.FromSeconds(5),
+                    TimeSpan.FromSeconds(10),
+                    TimeSpan.FromSeconds(15),
+                });
+
+            policy.Execute(() =>
+            {
+                var context = services.GetRequiredService<InventoryDbContext>();
+                context.Database.Migrate();
+            });
+
+            logger.LogInformation("Migrated inventory db");
         }
         catch (Exception ex)
         {
-            Console.WriteLine("An error occurred while migrating the database: " + ex.Message);
+            logger.LogError(ex, "An error occurred while migrating the inventory database");
         }
     }
 }
