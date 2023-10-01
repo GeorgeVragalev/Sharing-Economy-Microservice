@@ -20,6 +20,7 @@ public class Startup
     {
         serviceCollection.AddDbContext<InventoryDbContext>(b => b.UseLazyLoadingProxies()
             .UseNpgsql(_configurationManager.GetConnectionString("DefaultConnection")));
+            // .UseNpgsql(_configurationManager.GetConnectionString("LocalConnection")));
 
         serviceCollection.AddSwaggerGen();
 

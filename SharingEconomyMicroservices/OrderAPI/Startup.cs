@@ -22,6 +22,7 @@ public class Startup
         
         serviceCollection.AddDbContext<OrderDbContext>(b => b.UseLazyLoadingProxies()
             .UseNpgsql(_configurationManager.GetConnectionString("DefaultConnection")));
+            // .UseNpgsql(_configurationManager.GetConnectionString("LocalConnection")));
 
         serviceCollection.AddSwaggerGen();
 
