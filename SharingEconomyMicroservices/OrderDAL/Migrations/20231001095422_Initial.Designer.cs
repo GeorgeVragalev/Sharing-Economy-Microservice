@@ -12,7 +12,7 @@ using OrderDAL.Context;
 namespace OrderDAL.Migrations
 {
     [DbContext(typeof(OrderDbContext))]
-    [Migration("20230924113754_Initial")]
+    [Migration("20231001095422_Initial")]
     partial class Initial
     {
         /// <inheritdoc />

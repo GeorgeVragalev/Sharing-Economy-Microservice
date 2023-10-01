@@ -48,4 +48,22 @@ public class Startup
 
         app.MapControllers();
     }
+
+    public void ApplyMigrations(IServiceProvider serviceProvider)
+    {
+        // Here we are manually starting the service scope to apply migrations
+        using var scope = serviceProvider.CreateScope();
+        
+        var services = scope.ServiceProvider;
+        try
+        {
+            var context = services.GetRequiredService<OrderDbContext>();
+            context.Database.Migrate();
+            Console.WriteLine("Migrated order db");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("An error occurred while migrating the database: " + ex.Message);
+        }
+    }
 }

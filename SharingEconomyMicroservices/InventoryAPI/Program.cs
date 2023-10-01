@@ -19,4 +19,6 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 startup.ConfigurePipeline(app);
 
+startup.ApplyMigrations(app.Services);
+
 app.Run();
