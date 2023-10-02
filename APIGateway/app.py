@@ -28,6 +28,11 @@ def cache_key(action, payload):
     return sha256(f"{action}{str(payload)}".encode()).hexdigest()
 
 
+@app.route('/status')
+def index():
+    return 'Api gateway working on port: 5000'
+
+
 @app.route('/api/<service>/<action>', methods=['GET', 'POST'])
 def generic_service(service, action):
     service_url = discover_service(service)
@@ -55,4 +60,4 @@ def generic_service(service, action):
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)
