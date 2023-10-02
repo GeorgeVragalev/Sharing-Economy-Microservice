@@ -14,10 +14,9 @@ sem = Semaphore(10)
 
 # Service registry for local service discovery
 service_registry = {
-    "user": "http://localhost:5148/api/user",
-    "inventory": "http://localhost:5149/api/catalog",
+    "inventory": "http://inventory-service:80/api/item",
+    "order": "http://order-service:80/api/order",
 }
-
 
 def discover_service(service_name):
     return service_registry.get(service_name, None)
