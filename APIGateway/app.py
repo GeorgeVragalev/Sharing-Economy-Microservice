@@ -7,7 +7,7 @@ from hashlib import sha256
 app = Flask(__name__)
 
 # Initialize Redis
-r = redis.Redis(host='localhost', port=6379, db=0)
+r = redis.Redis(host='host.docker.internal', port=6379, db=0)
 
 # Initialize Semaphore for limiting concurrency
 sem = Semaphore(10)
@@ -18,12 +18,15 @@ service_registry = {
     "inventory": "http://localhost:5149/api/catalog",
 }
 
+
 def discover_service(service_name):
     return service_registry.get(service_name, None)
+
 
 def cache_key(action, payload):
     """Generate a cache key by hashing the action and payload."""
     return sha256(f"{action}{str(payload)}".encode()).hexdigest()
+
 
 @app.route('/api/<service>/<action>', methods=['GET', 'POST'])
 def generic_service(service, action):
@@ -50,5 +53,6 @@ def generic_service(service, action):
 
     return response.text, response.content
 
+
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(host="0.0.0.0", port=5000, debug=True)
