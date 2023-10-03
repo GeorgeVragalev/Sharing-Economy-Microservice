@@ -11,13 +11,13 @@ namespace InventoryAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class ItemController : ControllerBase
+public class InventoryController : ControllerBase
 {
     private readonly IItemService _itemService;
     private readonly IMapper _mapper;
-    private readonly ILogger<ItemController> _logger;
+    private readonly ILogger<InventoryController> _logger;
 
-    public ItemController(IItemService itemService, IMapper mapper, ILogger<ItemController> logger)
+    public InventoryController(IItemService itemService, IMapper mapper, ILogger<InventoryController> logger)
     {
         _itemService = itemService;
         _mapper = mapper;

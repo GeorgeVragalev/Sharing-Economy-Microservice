@@ -3,6 +3,7 @@ import requests
 import redis
 from threading import Semaphore
 from hashlib import sha256
+import logging
 
 app = Flask(__name__)
 
@@ -14,7 +15,7 @@ sem = Semaphore(10)
 
 # Service registry for local service discovery
 service_registry = {
-    "inventory": "http://inventory-service:80/api/item",
+    "inventory": "http://inventory-service:80/api/inventory",
     "order": "http://order-service:80/api/order",
 }
 
@@ -34,28 +35,39 @@ def index():
 
 @app.route('/api/<service>/<action>', methods=['GET', 'POST'])
 def generic_service(service, action):
-    service_url = discover_service(service)
-    if service_url is None:
-        return jsonify({"error": "Service not found"}), 404
+    try:
+        # Your existing service discovery logic here
+        service_url = discover_service(service)
+        if service_url is None:
+            logging.error(f'Service {service} not found')
+            return jsonify({"error": "Service not found"}), 404
 
-    key = cache_key(action, request.json if request.method == 'POST' else request.args)
+        key = cache_key(action, request.json if request.method == 'POST' else request.args)
 
-    # Try fetching the result from cache
-    cached_result = r.get(key)
-    if cached_result:
-        return jsonify({"result": cached_result.decode("utf-8"), "source": "cache"})
+        # Try fetching the result from cache
+        cached_result = r.get(key)
+        if cached_result:
+            return jsonify({"result": cached_result.decode("utf-8"), "source": "cache"})
 
-    with sem:
-        if request.method == 'GET':
-            response = requests.get(f'{service_url}/{action}', params=request.args)
-        else:  # POST
-            response = requests.post(f'{service_url}/{action}', json=request.json)
+        with sem:
+            if request.method == 'GET':
+                response = requests.get(f'{service_url}/{action}', params=request.args)
+            else:  # POST
+                response = requests.post(f'{service_url}/{action}', json=request.json)
 
-        if response.status_code == 200:
-            # Cache the result with a TTL of 60 seconds
-            r.setex(key, 60, response.text)
+            if response.status_code == 200:
+                # Cache the result with a TTL of 60 seconds
+                r.setex(key, 60, response.text)
+            else:
+                logging.error(f'Bad response from service: {response.status_code}, {response.text}')
+                return jsonify({"error": f"Bad response from service: {response.status_code}"}), response.status_code
 
-    return response.text, response.content
+        return response.text, response.content
+
+    except Exception as e:
+        message = f'An error occurred: {str(e)}'
+        logging.error(message)
+        return jsonify({"error": message}), 500
 
 
 if __name__ == '__main__':
