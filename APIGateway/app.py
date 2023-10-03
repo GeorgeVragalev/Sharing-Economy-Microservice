@@ -4,6 +4,7 @@ import redis
 from threading import Semaphore
 from hashlib import sha256
 import logging
+from requests.exceptions import Timeout
 
 app = Flask(__name__)
 
@@ -36,7 +37,6 @@ def index():
 @app.route('/api/<service>/<action>', methods=['GET', 'POST'])
 def generic_service(service, action):
     try:
-        # Your existing service discovery logic here
         service_url = discover_service(service)
         if service_url is None:
             logging.error(f'Service {service} not found')
@@ -51,12 +51,11 @@ def generic_service(service, action):
 
         with sem:
             if request.method == 'GET':
-                response = requests.get(f'{service_url}/{action}', params=request.args)
-            else:  # POST
-                response = requests.post(f'{service_url}/{action}', json=request.json)
+                response = requests.get(f'{service_url}/{action}', params=request.args, timeout=5)
+            else:
+                response = requests.post(f'{service_url}/{action}', json=request.json, timeout=5)
 
             if response.status_code == 200:
-                # Cache the result with a TTL of 60 seconds
                 r.setex(key, 60, response.text)
             else:
                 logging.error(f'Bad response from service: {response.status_code}, {response.text}')
@@ -64,10 +63,13 @@ def generic_service(service, action):
 
         return response.text, response.content
 
+    except Timeout:
+        logging.error(f'Timeout occurred while accessing {service}/{action}')
+        return jsonify({"error": "Request timed out"}), 408
+
     except Exception as e:
-        message = f'An error occurred: {str(e)}'
-        logging.error(message)
-        return jsonify({"error": message}), 500
+        logging.error(f'An error occurred: {str(e)}')
+        return jsonify({"error": "An unexpected error occurred"}), 500
 
 
 if __name__ == '__main__':
