@@ -29,49 +29,64 @@ public class OrderController : ControllerBase
     {
         return Ok("Ok");
     }
-    
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        if (id <= 0)
+        try
         {
-            return BadRequest("Id cannot be less than 0");
+            if (id <= 0)
+            {
+                return BadRequest("Id cannot be less than 0");
+            }
+
+            var order = await _orderService.GetById(id);
+
+            if (order != null)
+            {
+                return Ok(order);
+            }
+
+            return NotFound($"Not found order with id {id}");
         }
-
-        var order = await _orderService.GetById(id);
-
-        if (order != null)
+        catch (Exception e)
         {
-            return Ok(order);
+            _logger.LogWarning($"Couldn't get order with id: {id}", e);
+            return Problem($"Couldn't get order with id: {id}. {e.Message}");
         }
-
-        return NotFound($"Not found order with id {id}");
+      
     }
 
     [HttpPost("create")]
-    public async Task<ActionResult<Order>> PlaceOrder(PlaceOrderRequestModel orderModel)
+    public async Task<ActionResult<Order>> PlaceOrder([FromBody] PlaceOrderRequestModel orderModel)
     {
-        var orderValidation = new OrderValidation();
+        try
+        {
+            var orderValidation = new OrderValidation();
 
-        var validationResult = await orderValidation.ValidateAsync(orderModel);
+            var validationResult = await orderValidation.ValidateAsync(orderModel);
 
-        if (!validationResult.IsValid)
-            return BadRequest(validationResult.Errors);
+            if (!validationResult.IsValid)
+                return BadRequest(validationResult.Errors);
 
-        var order = _mapper.Map<PlaceOrderRequestModel, Order>(orderModel);
+            var order = _mapper.Map<PlaceOrderRequestModel, Order>(orderModel);
 
-        order.MapOrder(orderModel);
-        
-        await _orderService.PlaceOrder(order);
-        
-        return Ok(order);
+            order.MapOrder(orderModel);
+
+            await _orderService.PlaceOrder(order);
+
+            return Ok(order);
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning($"Couldn't place order", e);
+            return Problem($"Couldn't place order. {e.Message}");
+        }
     }
 
-    [HttpPut]
-    public async Task<IActionResult> Update(OrderModel orderModel)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update([FromBody] OrderModel orderModel, int id)
     {
-        int id = orderModel.Id;
-
         try
         {
             var orderInDb = await _orderService.GetById(id);

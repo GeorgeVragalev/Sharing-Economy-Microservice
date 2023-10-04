@@ -20,7 +20,6 @@ public class InventoryRepositoryTests : TestWithPostgres<InventoryDbContext>
 
     private Task SeedDatabase()
     {
-        
         return Task.CompletedTask;
     }
 

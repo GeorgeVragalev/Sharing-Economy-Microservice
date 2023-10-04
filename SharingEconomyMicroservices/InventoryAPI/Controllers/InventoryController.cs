@@ -29,85 +29,115 @@ public class InventoryController : ControllerBase
     {
         return Ok("Ok");
     }
-    
+
     #region CRUD
-    
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        if (id <= 0)
+        try
         {
-            return BadRequest("Id cannot be less than 0");
+            if (id <= 0)
+            {
+                return BadRequest("Id cannot be less than 0");
+            }
+
+            var item = await _itemService.GetById(id);
+
+            if (item != null)
+            {
+                return Ok(item);
+            }
+
+            return NotFound($"Not found item with id {id}");
         }
-
-        var item = await _itemService.GetById(id);
-
-        if (item != null)
+        catch (Exception e)
         {
-            return Ok(item);
+            _logger.LogWarning($"Couldn't get item with id: {id}", e);
+            return Problem($"Couldn't get item with id: {id}. {e.Message}");
         }
-        
-        return NotFound($"Not found item with id {id}");
     }
 
     [HttpPost("create")]
-    public async Task<ActionResult<Item>> Create(ItemModel itemModel)
+    public async Task<ActionResult<Item>> Create([FromBody] ItemModel itemModel)
     {
-        var itemValidation = new ItemValidation();
+        try
+        {
+            var itemValidation = new ItemValidation();
 
-        var validationResult = await itemValidation.ValidateAsync(itemModel);
+            var validationResult = await itemValidation.ValidateAsync(itemModel);
 
-        if (!validationResult.IsValid)
-            return BadRequest(validationResult.Errors);
+            if (!validationResult.IsValid)
+                return BadRequest(validationResult.Errors);
 
-        var item = _mapper.Map<ItemModel, Item>(itemModel);
-        
-        await _itemService.Insert(item);
-        return Ok(item);
+            var item = _mapper.Map<ItemModel, Item>(itemModel);
+
+            await _itemService.Insert(item);
+            return Ok(item);
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning($"Couldn't create item", e);
+            return Problem($"Couldn't create item. {e.Message}");
+        }
     }
 
-    [HttpPut]
-    public async Task<IActionResult> Update(ItemModel itemModel)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update([FromBody] ItemModel itemModel, int id)
     {
-        int id = itemModel.Id;
-        
-        var itemInDb = await _itemService.GetById(id);
-        
-        if (itemInDb == null)
+        try
         {
-            _logger.LogWarning($"Item with {id} doesn't exist");
-            return NotFound($"Item with {id} doesn't exist");     
+            var itemInDb = await _itemService.GetById(id);
+
+            if (itemInDb == null)
+            {
+                _logger.LogWarning($"Item with {id} doesn't exist");
+                return NotFound($"Item with {id} doesn't exist");
+            }
+
+            _mapper.Map(itemModel, itemInDb);
+
+            await _itemService.Update(id, itemInDb);
+
+            return Ok(itemModel);
         }
-        
-        _mapper.Map(itemModel, itemInDb);
-    
-        await _itemService.Update(id, itemInDb);
-        
-        return Ok(itemModel);
+        catch (Exception e)
+        {
+            _logger.LogWarning($"Couldn't update item with id: {id}", e);
+            return Problem($"Couldn't update item with id: {id}. {e.Message}");
+        }
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var item = await _itemService.GetById(id);
-        if (item == null)
+        try
         {
-            _logger.LogWarning("Item doesn't exist");
-            return NotFound("Item doesn't exist");
+            var item = await _itemService.GetById(id);
+            if (item == null)
+            {
+                _logger.LogWarning("Item doesn't exist");
+                return NotFound("Item doesn't exist");
+            }
+
+            await _itemService.Delete(id);
+            return Ok(id);
         }
-        
-        await _itemService.Delete(id);
-        return Ok(id);
+        catch (Exception e)
+        {
+            _logger.LogWarning($"Couldn't delete item with id: {id}", e);
+            return Problem($"Couldn't delete item with id: {id}. {e.Message}");
+        }
     }
 
     #endregion
-    
+
     [HttpPost("reserve")]
     public async Task<IActionResult> Reserve([FromBody] int id)
     {
         return await ChangeStatus(id, InventoryDAL.Entity.Enums.Status.Reserved);
     }
-    
+
     [HttpPost("change-status")]
     public async Task<IActionResult> ChangeStatus(int id, string status)
     {
@@ -117,7 +147,7 @@ public class InventoryController : ControllerBase
         {
             return BadRequest($"Status: {status} doesn't exist");
         }
-        
+
         return await ChangeStatus(id, newStatus);
     }
 
