@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Deployment
+metadata:
+  name: inventory-service
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: inventory-service
+    spec:
+      containers:
+      - name: inventory-service
+        image: <Your Inventory Image>
+        env:
+        - name: ConnectionStrings__DefaultConnection
+          value: "Host=inventory-db;Username=postgres;Password=postgres;Port=5432;Database=InventoryAPI;Pooling=true;"
+        - name: ASPNETCORE_URLS
+          value: "http://+:80"
