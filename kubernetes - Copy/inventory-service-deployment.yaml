@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Kompose\kompose.exe --file .\docker-compose.yml convert
+    kompose.version: 1.26.0 (40646f47)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: inventory-service
+  name: inventory-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: inventory-service
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Kompose\kompose.exe --file .\docker-compose.yml convert
+        kompose.version: 1.26.0 (40646f47)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/shared_app_network: "true"
+        io.kompose.service: inventory-service
+    spec:
+      containers:
+        - env:
+            - name: ASPNETCORE_URLS
+              value: http://+:80
+            - name: ConnectionStrings__DefaultConnection
+              value: Host=inventory-db;Username=postgres;Password=postgres;Port=5432;Database=InventoryAPI;Pooling=true;
+          image: inventory-service
+          name: inventory
+          ports:
+            - containerPort: 80
+          resources: {}
+      restartPolicy: Always
+status: {}
