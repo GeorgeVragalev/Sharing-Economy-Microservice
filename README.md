@@ -21,40 +21,44 @@ In a monolithic architecture, a failure in one component can potentially bring d
 
 ### Service boundaries
 
-#### User service
-The user service will have default crud operations as well as 
-operations related to authentication such as login, register and validate token.
+#### Order service
+The order service will have default crud operations as well as 
+operations related to ordering and reserving items from inventory.
 
-The validate token endpoint will be user by the Inventory service in order to validate the user to perform certain actions.
+The order service will receive a reservation request from the api gateway and first try to reserve the item from inventory service, if the request is successful then we add a record for the order.
 
 #### Inventory service
-The inventory service will have default crud operations. The get endpoints will be publicly available.
-However the post, put delete endpoints will have to accept a verification token, which will be sent from the user from headers, and will user the validate-token
-endpoint of the user service to authorize the user permission to change or insert entities.
+The inventory service will have default crud operations. The inventory service will receive requests from order service to reserve items and place orders that are linked to those items for that user.
 
 ### Project design
 
-The essense of the project is to allow only authorized users to specific operations for inventory management. 
+The essense of the project is to place orders using orders service and reserve items from inventory.
 
 ![Local Image](./Architecture_Diagram.jpg)
 
 #### How it works
 
-1. Firstly we need to register a user so we can call the register endpoint.
-2. Then we need to authorize the user so we login and the login in stored in cache so you do not log in twice for example.
-3. Then using this login token the user can call the other inventory microservice to perform curd operations on the entities.
-4. The user can access the inventory items without the token as get requests will be public.
-5. Once a request is sent to inventory microservice, it calls the user microservice to valdiate the token and if the token is valid then the request can be performed.
-6. The request is returned and is stored in cache.
 
-Service discovery and load balancing as well as regular health checks will eventually be implemented using kubernetes as it is convenient to use an all in one platform
+## Communication Flow:
 
-For the service load I might consider other approaches for load balancing.
+	1.	API Gateway: The central entry point for all external requests. It’s responsible for request routing, composition, and other cross-cutting concerns like caching. When it receives a request for a specific service, it forwards the request to the corresponding service.
+	2.	Service Discovery: The API Gateway has a service registry that holds the URL of each service. This is a simplified form of service discovery, which enables the API Gateway to know where to route incoming requests.
+	3.	Request Forwarding: After determining the destination based on the service name in the URL, the API Gateway forwards the HTTP request to the corresponding service (either Inventory or Order service in your setup).
+	4.	Database Interaction: Each service (Inventory and Order) has its PostgreSQL database. When a service receives a request, it reads from or writes to its database as needed.
+	5.	Response: After processing, the service sends a response back to the API Gateway, which in turn sends it back to the client.
+	6.	Caching: Redis is used to cache responses for specific keys. Before the API Gateway forwards a request to a service, it checks if the result is already cached. If so, it returns the cached result.
 
-All requests will be sent using http protocols.
+## Data Exchange:
 
+	* HTTP/JSON: Data is exchanged in JSON format over HTTP. Your services seem to be RESTful, using HTTP GET and POST methods.
+	* Query Parameters and JSON Payload: For GET requests, query parameters can be forwarded as is. For POST requests, a JSON payload is forwarded.
+	* Concurrent Requests: The API Gateway uses a semaphore (sem in your code) to limit the number of concurrent requests.
+	* Timeouts: You’ve implemented request timeouts using Python’s requests library, ensuring that requests don’t hang indefinitely.
+	* Error Handling: Proper logging and HTTP error codes are returned for various error cases (service not found, bad response from a service, timeout).
 
-To run run the docker compose
-to create script for migrations dotnet ef migrations script > output.sql
-Connect to dbs and apply each migration manually
-then you can make requests
+## Database:
+
+	* Isolated Databases: Each service has its PostgreSQL database running in its container.
+	* Connection Strings: The database connection information is provided through environment variables.
+
+Overall, the system is designed to be decoupled, with services knowing as little as necessary about each other, thereby adhering to microservices best practices.
