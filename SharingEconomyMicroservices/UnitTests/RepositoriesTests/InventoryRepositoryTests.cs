@@ -18,7 +18,7 @@ public class InventoryRepositoryTests : TestWithPostgres<InventoryDbContext>
         _itemRepository = new ItemRepository(new GenericRepository<Item>(_context));
     }
 
-    private Task SeedDatabaseThreeAccount()
+    private Task SeedDatabase()
     {
         
         return Task.CompletedTask;
