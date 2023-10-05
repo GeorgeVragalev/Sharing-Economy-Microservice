@@ -42,7 +42,7 @@ def cache_key(action, payload):
 
 @app.route('/status')
 def status():
-    return 'Api gateway working on port: 5000'
+    return 'API gateway working on port: 5000'
 
 
 @app.route('/clear_cache')
