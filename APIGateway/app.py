@@ -6,6 +6,7 @@ from hashlib import sha256
 import logging
 import pybreaker
 from requests.exceptions import Timeout
+from collections import deque
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -21,13 +22,18 @@ breaker = pybreaker.CircuitBreaker(fail_max=3, reset_timeout=60)
 
 # Service registry for local service discovery
 service_registry = {
-    "inventory": "http://inventory-service:80/api/inventory",
-    "order": "http://order-service:80/api/order",
+    "inventory": deque(["http://inventory-service:80/api/inventory"]),
+    "order": deque(["http://order-service:80/api/order"]),
 }
 
 
 def discover_service(service_name):
-    return service_registry.get(service_name, None)
+    if service_name not in service_registry:
+        return None
+
+    instance = service_registry[service_name].popleft()
+    service_registry[service_name].append(instance)
+    return instance
 
 
 def cache_key(action, payload):
@@ -35,14 +41,17 @@ def cache_key(action, payload):
 
 
 @app.route('/status')
-def index():
+def status():
     return 'Api gateway working on port: 5000'
 
 
-@app.route('/clear-cache')
-def index():
-    r.flushall()
-    return 'Flushed all cache keys'
+@app.route('/clear_cache')
+def clear_cache():
+    try:
+        r.flushall()
+        return 'Flushed all cache keys', 200
+    except Exception as e:
+        return f"An error occurred: {str(e)}", 500
 
 
 @breaker
