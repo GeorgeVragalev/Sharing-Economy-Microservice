@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using DefaultNamespace;
 using InventoryAPI.Models;
 using InventoryAPI.Validations;
 using InventoryBLL.Item;
@@ -139,8 +140,10 @@ public class InventoryController : ControllerBase
     }
 
     [HttpPost("change-status")]
-    public async Task<IActionResult> ChangeStatus(int id, string status)
+    public async Task<IActionResult> ChangeStatus([FromBody] ChangeStatusRequest changeStatusRequest)
     {
+        var status = changeStatusRequest.Status;
+        
         var isValidStatus = Enum.TryParse<Status>(status, out var newStatus);
 
         if (!isValidStatus)
@@ -148,7 +151,7 @@ public class InventoryController : ControllerBase
             return BadRequest($"Status: {status} doesn't exist");
         }
 
-        return await ChangeStatus(id, newStatus);
+        return await ChangeStatus(changeStatusRequest.Id, newStatus);
     }
 
     private async Task<IActionResult> ChangeStatus(int id, Status newStatus)

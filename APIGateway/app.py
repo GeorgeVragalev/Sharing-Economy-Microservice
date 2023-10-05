@@ -25,15 +25,25 @@ service_registry = {
     "order": "http://order-service:80/api/order",
 }
 
+
 def discover_service(service_name):
     return service_registry.get(service_name, None)
+
 
 def cache_key(action, payload):
     return sha256(f"{action}{str(payload)}".encode()).hexdigest()
 
+
 @app.route('/status')
 def index():
     return 'Api gateway working on port: 5000'
+
+
+@app.route('/clear-cache')
+def index():
+    r.flushall()
+    return 'Flushed all cache keys'
+
 
 @breaker
 def perform_request(url, method, params=None, json=None):
@@ -41,6 +51,7 @@ def perform_request(url, method, params=None, json=None):
         return requests.get(url, params=params, timeout=5)
     else:
         return requests.post(url, json=json, timeout=5)
+
 
 @app.route('/api/<service>/<action>', methods=['GET', 'POST'])
 def generic_service(service, action):
@@ -75,6 +86,7 @@ def generic_service(service, action):
     except Exception as e:
         logging.error(f'An error occurred: {str(e)}')
         return jsonify({"error": "An unexpected error occurred"}), 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
