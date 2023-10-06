@@ -1,6 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "InventoryMicorservice", "InventoryMicorservice", "{E9040E2D-6D8A-48B5-9B5A-AD2062DE6ABA}"
+	ProjectSection(SolutionItems) = preProject
+		Dockerfile-inventory = Dockerfile-inventory
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventoryAPI", "InventoryAPI\InventoryAPI.csproj", "{43589C57-D27D-482C-820D-500211AFFFF6}"
 EndProject
@@ -9,6 +12,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventoryDAL", "InventoryDAL\InventoryDAL.csproj", "{B966A180-B6BC-4830-8C51-3A11F1D427FD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OrderMicroservice", "OrderMicroservice", "{30D0D29B-F50E-4C9C-A8BE-95578CAD92C7}"
+	ProjectSection(SolutionItems) = preProject
+		Dockerfile-order = Dockerfile-order
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderDAL", "OrderDAL\OrderDAL.csproj", "{6FB5F565-8E73-480A-93C8-743DF860EE80}"
 EndProject
