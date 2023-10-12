@@ -8,6 +8,8 @@ services:
     build:
       context: ./SharingEconomyMicroservices
       dockerfile: Dockerfile-inventory
+    volumes:
+      - ./SharingEconomyMicroservices:/appstore
     environment:
       - ConnectionStrings__DefaultConnection=Host=inventory-db;Username=postgres;Password=postgres;Port=5432;Database=InventoryAPI;Pooling=true;
       - ASPNETCORE_URLS=http://+:80
@@ -39,6 +41,8 @@ services:
     build:
       context: ./SharingEconomyMicroservices
       dockerfile: Dockerfile-order
+    volumes:
+      - ./SharingEconomyMicroservices:/app
     environment:
       - ConnectionStrings__DefaultConnection=Host=order-db;Username=postgres;Password=postgres;Port=5432;Database=OrderAPI;Pooling=true;
       - ASPNETCORE_URLS=http://+:80
@@ -78,6 +82,8 @@ services:
     build:
       context: ./APIGateway
       dockerfile: Dockerfile
+    volumes:
+      - ./APIGateway:/app
     depends_on:
       - inventory-service
       - order-service
