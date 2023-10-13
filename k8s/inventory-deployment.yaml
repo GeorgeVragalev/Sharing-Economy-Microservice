@@ -22,3 +22,15 @@ spec:
               value: "Host=inventory-db;Username=postgres;Password=postgres;Port=5432;Database=InventoryAPI;Pooling=true;"
             - name: ASPNETCORE_URLS
               value: "http://+:80"
+          readinessProbe:
+            httpGet:
+              path: /YOUR_HEALTHCHECK_ENDPOINT
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /YOUR_HEALTHCHECK_ENDPOINT
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 20

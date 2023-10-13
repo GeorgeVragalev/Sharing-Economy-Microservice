@@ -11,8 +11,10 @@ from collections import deque
 # Initialize Flask app
 app = Flask(__name__)
 
+isDeployment = True
+redis_link = 'redis-service' if isDeployment else 'host.docker.internal'
 # Initialize Redis
-r = redis.Redis(host='host.docker.internal', port=6379, db=0)
+r = redis.Redis(host=redis_link, port=6379, db=0)
 
 # Initialize Semaphore for limiting concurrency
 sem = Semaphore(10)
@@ -74,7 +76,10 @@ def generic_service(service, action):
         cached_result = r.get(key)
         if cached_result:
             return jsonify({"result": cached_result.decode("utf-8"), "source": "cache"})
-
+        
+        # clear cache after post request
+        # cache only get
+        
         with sem:
             response = perform_request(f'{service_url}/{action}', request.method, params=request.args, json=request.json)
             if response.status_code == 200:
