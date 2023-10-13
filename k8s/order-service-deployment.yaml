@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+        - name: order-service
+          image: vragalevgeorge/order-service:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: ConnectionStrings__DefaultConnection
+              value: "Host=order-db;Username=postgres;Password=postgres;Port=5432;Database=OrderAPI;Pooling=true;"
+            - name: ASPNETCORE_URLS
+              value: "http://+:80"
+          readinessProbe:
+            httpGet:
+              path: /YOUR_HEALTHCHECK_ENDPOINT
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /YOUR_HEALTHCHECK_ENDPOINT
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 20

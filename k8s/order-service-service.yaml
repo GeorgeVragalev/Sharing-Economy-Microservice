@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: userapi-service
+  name: order-service
 spec:
   selector:
-    app: userapi
+    app: order-service
   ports:
     - protocol: TCP
-      port: 5148
-      targetPort: 5148
+      port: 80
+      targetPort: 80
