@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Npgsql;
 
 namespace UnitTests.Tool;
@@ -11,6 +12,8 @@ public abstract class TestWithPostgres<T> : IDisposable where T : DbContext
 
     protected TestWithPostgres()
     {
+        var config = new ConfigurationBuilder().Build();
+
         _connection = new NpgsqlConnection(ConnectionString);
         _connection.Open();
         Options = new DbContextOptionsBuilder<T>().UseNpgsql(_connection).Options;
