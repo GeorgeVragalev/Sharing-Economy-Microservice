@@ -62,7 +62,7 @@ services:
     networks:
       - shared_app_network
 
-  redis:
+  redis-service:
     image: "redis:latest"
     container_name: "redis"
     ports:
@@ -83,7 +83,7 @@ services:
     depends_on:
       - inventory-service
       - order-service
-      - redis
+      - redis-service
     networks:
       - shared_app_network
 

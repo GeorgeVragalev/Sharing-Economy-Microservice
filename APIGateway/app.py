@@ -21,7 +21,7 @@ limiter = Limiter(
 limiter.request_filter = get_remote_address
 
 
-isDeployment = False
+isDeployment = True
 redis_link = 'redis-service' if isDeployment else 'localhost'
 # Initialize Redis
 r = redis.Redis(host=redis_link, port=6379, db=0)
