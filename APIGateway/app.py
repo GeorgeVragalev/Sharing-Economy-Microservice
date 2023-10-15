@@ -1,3 +1,4 @@
+import json
 from flask import Flask, request, jsonify
 import requests
 import redis
@@ -6,10 +7,9 @@ import logging
 import pybreaker
 from requests.exceptions import Timeout
 from collections import deque
+from requests.exceptions import ConnectionError
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from requests.exceptions import ConnectionError
-
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -23,6 +23,9 @@ limiter.request_filter = get_remote_address
 
 isDeployment = True
 redis_link = 'redis-service' if isDeployment else 'localhost'
+inventory_link = 'inventory-service:80' if isDeployment else 'localhost:5217'
+order_link = 'order-service:80' if isDeployment else 'localhost:5143'
+
 # Initialize Redis
 r = redis.Redis(host=redis_link, port=6379, db=0)
 
@@ -31,9 +34,20 @@ breaker = pybreaker.CircuitBreaker(fail_max=3, reset_timeout=60)
 
 # Service registry for local service discovery
 service_registry = {
-    "inventory": deque(["http://inventory-service:80/api/inventory"]),
-    "order": deque(["http://order-service:80/api/order"]),
+    "inventory": deque([f"http://{inventory_link}/api/inventory"]),
+    "order": deque([f"http://{order_link}/api/order"]),
 }
+
+
+def handle_json_response(response):
+    try:
+        # Attempt to deserialize the content as JSON
+        parsed_data = json.loads(response)
+        # Serialize it again with indentation
+        formatted_data = json.dumps(parsed_data, indent=4)
+        return formatted_data
+    except json.JSONDecodeError:
+        return response
 
 
 def discover_service(service_name):
@@ -96,16 +110,17 @@ def generic_service(service, action):
         if request.method == 'GET':
             cached_result = r.get(key)
             if cached_result:
-                return jsonify({"result": cached_result.decode("utf-8"), "source": "cache"})
+                return handle_json_response(cached_result.decode("utf-8"))
 
         response = perform_request(f'{service_url}/{action}', request.method, params=request.args)
         if response.status_code == 200:
             if request.method == 'GET':
                 r.setex(key, 60, response.text)
-            return response.text, response.content
         else:
             logging.error(f'Bad response from service: {response.status_code}, {response.text}')
-            return jsonify({"error": f"Bad response from service: {response.status_code}"}), response.status_code
+
+        formatted_json = handle_json_response(response.text)
+        return formatted_json, response.status_code
 
     except ConnectionError:
         logging.error('Connection error occurred. The service might be down.')

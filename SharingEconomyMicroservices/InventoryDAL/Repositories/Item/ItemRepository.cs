@@ -56,14 +56,19 @@ public class ItemRepository : IItemRepository
         {
             var item = await _genericRepository.GetById(itemId);
 
-            if (item != null && item.IsAvailable())
+            if (item == null)
+            {
+                throw new NotFoundException("Item doesn't exist.");
+            }
+            
+            if (item.IsAvailable())
             {
                 item.Status = status;
             }
             else
             {
                 // Rollback will happen automatically if an exception is thrown
-                throw new ItemReservedException("Item is not available.");
+                throw new ItemReservedException("Item is not available for reservation.");
             }
         });
     }

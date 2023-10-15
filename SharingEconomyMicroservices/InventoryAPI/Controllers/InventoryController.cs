@@ -122,7 +122,7 @@ public class InventoryController : ControllerBase
             }
 
             await _itemService.Delete(id);
-            return Ok(id);
+            return Ok($"Deleted item {id}");
         }
         catch (Exception e)
         {
@@ -159,11 +159,16 @@ public class InventoryController : ControllerBase
         try
         {
             await _itemService.ChangeStatus(id, newStatus);
-            return Ok(id);
+            return Ok($"Changed item {id} status to {newStatus}");
+        }
+        catch (NotFoundException)
+        {
+            _logger.LogWarning($"Item {id} doesn't exist");
+            return NotFound($"Item {id} doesn't exist");
         }
         catch (ItemReservedException)
         {
-            return Ok("Item is already reserved");
+            return Problem("Item is already reserved");
         }
         catch (Exception e)
         {

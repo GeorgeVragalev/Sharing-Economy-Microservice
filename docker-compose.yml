@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   inventory-service:
-    container_name: "inventory"
+    container_name: "inventory-service"
     ports:
       - "5217:80"
     build:
@@ -33,7 +33,7 @@ services:
 
 
   order-service:
-    container_name: "order"
+    container_name: "order-service"
     ports:
       - "5143:80"
     build:
