@@ -14,23 +14,23 @@ spec:
     spec:
       containers:
         - name: inventory-service
-          image: vragalevgeorge/inventory-service:latest
+          image: vragalevgeorge/sharing-economy-microservice-inventory-service:latest
           ports:
             - containerPort: 80
           env:
             - name: ConnectionStrings__DefaultConnection
-              value: "Host=inventory-db;Username=postgres;Password=postgres;Port=5432;Database=InventoryAPI;Pooling=true;"
+              value: "Host=inventory-db;Username=postgres;Password=postgres;Port=5433;Database=InventoryAPI;Pooling=true;"
             - name: ASPNETCORE_URLS
               value: "http://+:80"
           readinessProbe:
             httpGet:
-              path: /YOUR_HEALTHCHECK_ENDPOINT
+              path: /api/inventory/status
               port: 80
             initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
             httpGet:
-              path: /YOUR_HEALTHCHECK_ENDPOINT
+              path: /api/inventory/status
               port: 80
             initialDelaySeconds: 15
             periodSeconds: 20

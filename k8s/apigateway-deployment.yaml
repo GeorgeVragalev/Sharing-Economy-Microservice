@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: api-gateway-container
-          image: vragalevgeorge/trailermicroservice-api-gateway:latest
+          image: vragalevgeorge/sharing-economy-microservice-api-gateway:latest
           ports:
             - containerPort: 5000
           env:
