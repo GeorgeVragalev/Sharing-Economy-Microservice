@@ -58,3 +58,13 @@ To run run the docker compose
 to create script for migrations dotnet ef migrations script > output.sql
 Connect to dbs and apply each migration manually
 then you can make requests
+
+# Local Setup
+
+### Unzip locally the zipped file from the repository
+
+It contains the kubernetes configuration files that have to be applied
+
+Also it contains the LocalSetup.md file which contains the instructions to run the application locally
+
+### Follow the instructions in the LocalSetup.md file

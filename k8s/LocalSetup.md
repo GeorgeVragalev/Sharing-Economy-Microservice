@@ -7,19 +7,13 @@ Welcome to the setup guide for our Microservices Architecture. This document pro
 Ensure you have the following tools installed:
 
 - Docker
-- Docker Desktop with Kubernetes enabled or Minikube
-- kubectl
+- Docker Desktop with Kubernetes enabled
+- kubectl (cli is installed with Docker Desktop)
 
 ## Steps to Setup
 
-### 1. Clone the Repository (if shared via Git)
+### 1. Unzip the yaml files and have them locally
 
-```bash
-git clone [Repository URL]
-cd [Repository Folder Name]
-```
-
-Replace `[Repository URL]` with the actual repository URL and `[Repository Folder Name]` with the cloned folder's name.
 
 ### 2. Pulling Docker Images
 
@@ -31,7 +25,6 @@ docker pull vragalevgeorge/sharing-economy-microservice-inventory-service:latest
 docker pull vragalevgeorge/sharing-economy-microservice-order-service:latest
 ```
 
-Replace `your_dockerhub_username` with the actual Docker Hub username and use the appropriate tags.
 
 ### 3. Deploying to Kubernetes
 
@@ -60,6 +53,8 @@ kubectl apply -f order-db-deployment.yaml
 kubectl apply -f order-service.yaml
 kubectl apply -f order-deployment.yaml
 ```
+
+If you want to remove the pods, you can use the following:
 
 Delete the Kubernetes manifests:
 
@@ -99,15 +94,9 @@ kubectl port-forward svc/api-gateway-service 5000:5000
 
 You can now access the API Gateway on [http://localhost:5000/](http://localhost:5000/).
 
-## Scaling and Other Notes
+#### !!! Use the attached Postman collection to test. !!!
 
-If you want to scale any service, you can use the following:
-
-```bash
-kubectl scale deployment [DEPLOYMENT_NAME] --replicas=[NUMBER]
-```
-
-Replace `[DEPLOYMENT_NAME]` with the deployment's name and `[NUMBER]` with the desired number of replicas.
+## Monitoring
 
 Make sure to monitor logs and the health of the services. You can use:
 
@@ -117,6 +106,7 @@ kubectl logs [POD_NAME]
 
 And:
 
+Once the services are ready all the pods should be in the running state after running:
 ```bash
 kubectl get pods
 ```
