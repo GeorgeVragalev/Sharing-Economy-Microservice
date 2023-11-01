@@ -22,7 +22,7 @@ In a monolithic architecture, a failure in one component can potentially bring d
 ### Service boundaries
 
 #### User service
-The user service will have default crud operations as well as 
+The user service will have default crud operations as well as
 operations related to authentication such as login, register and validate token.
 
 The validate token endpoint will be user by the Inventory service in order to validate the user to perform certain actions.
@@ -34,7 +34,7 @@ endpoint of the user service to authorize the user permission to change or inser
 
 ### Project design
 
-The essense of the project is to allow only authorized users to specific operations for inventory management. 
+The essense of the project is to allow only authorized users to specific operations for inventory management.
 
 ![Local Image](./Architecture_Diagram.jpg)
 
@@ -68,3 +68,92 @@ It contains the kubernetes configuration files that have to be applied
 Also it contains the LocalSetup.md file which contains the instructions to run the application locally
 
 ### Follow the instructions in the LocalSetup.md file
+
+
+## Lab 2
+
+
+
+#### 1. Circuit Breaker
+
+The Circuit Breaker pattern is essential to prevent repeated failures, giving the affected 
+component time to recover. Think of it as an electrical circuit breaker: it stops the flow of 
+requests when a fault is detected. 
+
+Implementation:
+
+I've implemented the circuit breaker in our Python API gateway. 
+By leveraging libraries like CircuitBreaker for Python, I've wrapped calls to external services. 
+When the number of failures crosses a certain threshold, the breaker will trip, and further 
+calls will be automatically failed for a set duration.
+
+
+
+
+#### 2. Service High Availability:
+High availability ensures that our service remains accessible without interruptions. 
+By minimizing downtime, we ensure our service remains continuously operational.
+
+Implementation:
+Kubernetes provides an inherent high availability mechanism. Using deployments, I've specified
+the desired replica count for our services. If any pod encounters issues, Kubernetes will
+ensure another starts, maintaining our desired service count.
+
+
+#### 3. Consistent Hashing for Cache:
+The primary goal here is to distribute cache entries across multiple nodes efficiently, 
+ensuring minimal rehashing when nodes are either added or removed.
+
+Implementation:
+For our cache, Redis in cluster mode has been selected, which employs consistent hashing to distribute keys across various nodes.
+
+
+#### 4. Cache High Availability:
+Cache High Availability ensures our caching service remains up and running, even if some nodes fail.
+This setup is crucial for preserving our cached data and maintaining optimal performance.
+
+Implementation:
+I've set up Redis in a high availability configuration within Kubernetes. 
+
+
+
+#### 4. Logging with Prometheus and Grafana:
+For our system's optimal operation, logging and monitoring are indispensable. 
+It allows us to observe, debug, and improve our services effectively.
+
+Implementation:
+Prometheus and Grafana have been deployed on our Kubernetes cluster. 
+While Prometheus fetches metrics from our services, Grafana is responsible for visualizing these metrics.
+All our services have been configured to expose relevant metrics in a format Prometheus comprehends.
+
+
+#### 5. Long-running saga transactions:
+The goal is to manage business transactions that span a longer duration without resorting to 2PC. 
+Instead, we break them into isolated steps or sagas.
+
+Implementation:
+Here's how I've broken down an example transaction:
+
+Our API gateway sends a request to the inventory service to reserve an item.
+Upon item availability, the transaction proceeds to initiate payment and place the order.
+After payment confirmation, the item is tagged as "in use". 
+Should any step fail, compensating transactions are triggered to reverse prior actions.
+
+
+#### 6. Database redundancy/replication + failover:
+This ensures data integrity and uninterrupted availability, even in the face of database node failures.
+
+Implementation:
+For our setup, I've integrated the Zalando Postgres operator within Kubernetes. 
+This operator streamlines PostgreSQL tasks like failover and backup, ensuring multiple 
+database replicas for high availability.
+
+
+#### 7. Data Warehousing:
+A data warehouse serves as a consolidated repository for integrated data from various sources. 
+This system facilitates business intelligence activities, particularly analytics.
+
+Implementation:
+I've opted for [Google BigQuery/Oracle Cloud's free tier] or any one of them that is free.
+Post-setup, an ETL (Extract, Transform, Load) process has been established. 
+It periodically pulls data from our microservices' databases, updating our data warehouse.
