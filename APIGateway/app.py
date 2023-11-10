@@ -161,15 +161,14 @@ def generic_service(service, action):
         REQUEST_LATENCY.labels(request.method, f"/api/{service}/{action}").observe(time.time() - start_time)
 
         if 200 <= response.status_code < 300:
-            # Reset re-route counter if the request was successful
             if request.method == 'GET':
                 r.setex(key, 60, response.text)
         else:
-            if response.status_code >= 500:
-                re_route_counter[service] = 0
-
             ERROR_REQUESTS.labels(request.method, f"/api/{service}/{action}", response.status_code).inc()
             logging.error(f'Bad response from service: {response.status_code}, {response.text}')
+
+        if response.status_code < 500:
+            re_route_counter[service] = 0
 
         formatted_json = handle_json_response(response.text)
         return formatted_json, response.status_code
