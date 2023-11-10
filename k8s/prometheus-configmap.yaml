@@ -10,4 +10,10 @@ data:
       - job_name: 'api-gateway'
         static_configs:
           - targets: ['api-gateway-service:5000']
+      - job_name: 'order-service'
+        static_configs:
+          - targets: ['order-service:80']
+      - job_name: 'inventory-service'
+        static_configs:
+          - targets: ['inventory-service:80']
       # Add additional scrape_configs here for other services
