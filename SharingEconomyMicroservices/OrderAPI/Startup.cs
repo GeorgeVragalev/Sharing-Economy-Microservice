@@ -3,6 +3,7 @@ using OrderBLL;
 using OrderDAL;
 using OrderDAL.Context;
 using Polly;
+using Prometheus;
 using ConfigurationManager = Microsoft.Extensions.Configuration.ConfigurationManager;
 
 namespace OrderAPI;
@@ -44,9 +45,11 @@ public class Startup
             app.UseSwaggerUI();
         }
 
-        // app.UseHttpsRedirection();
+        app.UseHttpMetrics();
 
         app.UseAuthorization();
+        
+        app.MapMetrics();
 
         app.MapControllers();
     }

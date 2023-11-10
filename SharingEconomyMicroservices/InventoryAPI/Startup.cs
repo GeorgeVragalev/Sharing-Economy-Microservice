@@ -3,6 +3,7 @@ using InventoryDAL;
 using InventoryDAL.Context;
 using Microsoft.EntityFrameworkCore;
 using Polly;
+using Prometheus;
 using ConfigurationManager = Microsoft.Extensions.Configuration.ConfigurationManager;
 
 namespace InventoryAPI;
@@ -41,9 +42,11 @@ public class Startup
             app.UseSwaggerUI();
         }
 
-        // app.UseHttpsRedirection();
+        app.UseHttpMetrics();
 
         app.UseAuthorization();
+        
+        app.MapMetrics();
 
         app.MapControllers();
     }
