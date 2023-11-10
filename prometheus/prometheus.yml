@@ -1,0 +1,13 @@
+﻿global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['api-gateway:5000']
+  - job_name: 'inventory-service'
+    static_configs:
+      - targets: ['inventory-service:80']
+  - job_name: 'order-service'
+    static_configs:
+      - targets: ['order-service:80']

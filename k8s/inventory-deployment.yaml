@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: inventory-service
-          image: vragalevgeorge/sharing-economy-microservice-inventory-service:latest
+          image: vragalevgeorge/sharing-economy-microservice-inventory-service:v2
           ports:
             - containerPort: 80
           env:

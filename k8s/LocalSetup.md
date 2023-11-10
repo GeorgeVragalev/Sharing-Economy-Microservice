@@ -17,12 +17,26 @@ Ensure you have the following tools installed:
 
 ### 2. Pulling Docker Images
 
+Create new docker images:
+Run docker compose
+Tag images:
+```bash
+docker tag sharing-economy-microservice-order-service:latest vragalevgeorge/sharing-economy-microservice-order-service:v2
+docker push vragalevgeorge/sharing-economy-microservice-order-service:v2
+
+docker tag sharing-economy-microservice-api-gateway:latest vragalevgeorge/sharing-economy-microservice-api-gateway:v2
+docker push vragalevgeorge/sharing-economy-microservice-api-gateway:v2
+
+docker tag sharing-economy-microservice-inventory-service:latest vragalevgeorge/sharing-economy-microservice-inventory-service:v2
+docker push vragalevgeorge/sharing-economy-microservice-inventory-service:v2
+```
+
 Ensure that you pull the necessary Docker images:
 
 ```bash
-docker pull vragalevgeorge/sharing-economy-microservice-api-gateway:latest
-docker pull vragalevgeorge/sharing-economy-microservice-inventory-service:latest
-docker pull vragalevgeorge/sharing-economy-microservice-order-service:latest
+docker pull vragalevgeorge/sharing-economy-microservice-api-gateway:v2
+docker pull vragalevgeorge/sharing-economy-microservice-inventory-service:v2
+docker pull vragalevgeorge/sharing-economy-microservice-order-service:v2
 ```
 
 
@@ -52,6 +66,14 @@ kubectl apply -f order-db-service.yaml
 kubectl apply -f order-db-deployment.yaml
 kubectl apply -f order-service.yaml
 kubectl apply -f order-deployment.yaml
+
+#Prometheus and Grafana
+kubectl apply -f prometheus-configmap.yaml
+kubectl apply -f prometheus-deployment.yaml
+kubectl apply -f prometheus-service.yaml
+
+kubectl apply -f grafana-deployment.yaml
+kubectl apply -f grafana-service.yaml
 ```
 
 If you want to remove the pods, you can use the following:
@@ -59,6 +81,15 @@ If you want to remove the pods, you can use the following:
 Delete the Kubernetes manifests:
 
 ```bash
+#Prometheus and Grafana
+kubectl delete -f prometheus-configmap.yaml
+kubectl delete -f prometheus-deployment.yaml
+kubectl delete -f prometheus-service.yaml
+
+
+kubectl delete -f grafana-deployment.yaml
+kubectl delete -f grafana-service.yaml
+
 # For the API Gateway:
 kubectl delete -f apigateway-deployment.yaml
 kubectl delete -f apigateway-service.yaml
@@ -90,6 +121,8 @@ Since we are using local deployment, we'll use port-forward to access the API Ga
 
 ```bash
 kubectl port-forward svc/api-gateway-service 5000:5000
+
+kubectl port-forward service/grafana-service 3000
 ```
 
 You can now access the API Gateway on [http://localhost:5000/](http://localhost:5000/).
