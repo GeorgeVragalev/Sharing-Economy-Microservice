@@ -35,8 +35,8 @@ r = redis.Redis(host=redis_link, port=6379, db=0)
 
 # Initialize Circuit Breaker
 re_route_counter = {}
-REROUTE_THRESHOLD = 5
-breaker = pybreaker.CircuitBreaker(fail_max=3, reset_timeout=60)
+REROUTE_THRESHOLD = 10
+breaker = pybreaker.CircuitBreaker(fail_max=REROUTE_THRESHOLD, reset_timeout=60)
 
 # Initialize Prometheus metrics
 cache_hits = 0
@@ -162,10 +162,12 @@ def generic_service(service, action):
 
         if 200 <= response.status_code < 300:
             # Reset re-route counter if the request was successful
-            re_route_counter[service] = 0
             if request.method == 'GET':
                 r.setex(key, 60, response.text)
         else:
+            if response.status_code >= 500:
+                re_route_counter[service] = 0
+
             ERROR_REQUESTS.labels(request.method, f"/api/{service}/{action}", response.status_code).inc()
             logging.error(f'Bad response from service: {response.status_code}, {response.text}')
 
