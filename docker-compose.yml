@@ -62,14 +62,16 @@ services:
     networks:
       - shared_app_network
 
-  redis-service:
-    image: "redis:latest"
-    container_name: "redis"
+  hazelcast:
+    image: hazelcast/hazelcast:latest
+    volumes:
+      - ./hazelcast/hazelcast.yml:/opt/hazelcast/config_ext/hazelcast.yml  # Ensure this file path is correct
     ports:
-      - "6379:6379"
+      - "5701:5701"
+    environment:
+      - HZ_NETWORK_RESTAPI_ENABLED=true  # This is another way to enable it via environment variable
     networks:
       - shared_app_network
-
 
   api-gateway:
     container_name: "api-gateway"
@@ -83,7 +85,7 @@ services:
     depends_on:
       - inventory-service
       - order-service
-      - redis-service
+      - hazelcast
     networks:
       - shared_app_network
 

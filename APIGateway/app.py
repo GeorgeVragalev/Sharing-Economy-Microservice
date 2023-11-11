@@ -3,9 +3,7 @@ import logging
 import time
 from collections import deque
 from hashlib import sha256
-
 import pybreaker
-import redis
 import requests
 from flask import Flask, request, jsonify, Response
 from flask_limiter import Limiter
@@ -14,6 +12,7 @@ import prometheus_client
 from prometheus_client import Counter, Gauge, Histogram
 from requests.exceptions import ConnectionError
 from requests.exceptions import Timeout
+import hazelcast
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -24,14 +23,19 @@ limiter = Limiter(
 )
 limiter.request_filter = get_remote_address
 
-
 isDeployment = True
-redis_link = 'redis-service' if isDeployment else 'localhost'
+cache_link = 'hazelcast' if isDeployment else 'localhost'
 inventory_link = 'inventory-service:80' if isDeployment else 'localhost:5217'
 order_link = 'order-service:80' if isDeployment else 'localhost:5143'
 
-# Initialize Redis
-r = redis.Redis(host=redis_link, port=6379, db=0)
+# Initialize Hazelcast Client
+client = hazelcast.HazelcastClient(
+    cluster_name="dev",
+    cluster_members=[
+        f"{cache_link}:5701"
+    ]
+)
+hz_map = client.get_map("api-cache").blocking()
 
 # Initialize Circuit Breaker
 re_route_counter = {}
@@ -53,7 +57,6 @@ service_registry = {
     "inventory": deque([f"http://{inventory_link}/api/inventory"]),
     "order": deque([f"http://{order_link}/api/order"]),
 }
-
 
 def handle_json_response(response):
     try:
@@ -102,7 +105,7 @@ def status():
 @app.route('/clear_cache')
 def clear_cache():
     try:
-        r.flushall()
+        hz_map.clear()
         return 'Flushed all cache keys', 200
     except Exception as e:
         return f"An error occurred: {str(e)}", 500
@@ -138,13 +141,14 @@ def generic_service(service, action):
             return jsonify({"error": "Service not found"}), 404
 
         if request.method in ['POST', 'PUT', 'DELETE']:
-            r.delete(cache_key(service, action))
+            hz_map.delete(cache_key(service, action))
 
         key = cache_key(action, request.args)
 
         if request.method == 'GET':
             key = cache_key(action, request.args)
-            cached_result = r.get(key)
+            cached_result = hz_map.get(cache_key)
+            logging.info(f"Cached? {cached_result}")
             if cached_result:
                 update_cache_metrics(True)
 
@@ -162,7 +166,7 @@ def generic_service(service, action):
 
         if 200 <= response.status_code < 300:
             if request.method == 'GET':
-                r.setex(key, 60, response.text)
+                hz_map.set(key, response.text, ttl=60)  # Cache the new result
         else:
             ERROR_REQUESTS.labels(request.method, f"/api/{service}/{action}", response.status_code).inc()
             logging.error(f'Bad response from service: {response.status_code}, {response.text}')
