@@ -53,7 +53,7 @@ public class ItemService : IItemService
         await _itemRepository.Insert(item);
     }
 
-    public async Task Update(int id, InventoryDAL.Entity.Item item)
+    public async Task Update(InventoryDAL.Entity.Item item)
     {
         await _itemRepository.Update(item ?? throw new InvalidOperationException());
     }

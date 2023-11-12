@@ -64,12 +64,12 @@ services:
 
   hazelcast:
     image: hazelcast/hazelcast:latest
-    volumes:
-      - ./hazelcast/hazelcast.yml:/opt/hazelcast/config_ext/hazelcast.yml  # Ensure this file path is correct
     ports:
       - "5701:5701"
     environment:
-      - HZ_NETWORK_RESTAPI_ENABLED=true  # This is another way to enable it via environment variable
+      - "JAVA_OPTS=-Dhazelcast.config=/opt/hazelcast/hazelcast.yaml"
+    volumes:
+      - ./hazelcast/hazelcast.yaml:/opt/hazelcast/hazelcast.yaml  # Ensure this file path is correct
     networks:
       - shared_app_network
 

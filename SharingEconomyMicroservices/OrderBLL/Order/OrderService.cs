@@ -82,7 +82,7 @@ public class OrderService : IOrderService
         await _orderRepository.Insert(order);
     }
 
-    public async Task Update(int id, OrderDAL.Entity.Order order)
+    public async Task Update(OrderDAL.Entity.Order order)
     {
         await _orderRepository.Update(order ?? throw new OrderNotFoundException());
     }

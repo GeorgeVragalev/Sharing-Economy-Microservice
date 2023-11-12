@@ -29,13 +29,13 @@ inventory_link = 'inventory-service:80' if isDeployment else 'localhost:5217'
 order_link = 'order-service:80' if isDeployment else 'localhost:5143'
 
 # Initialize Hazelcast Client
-client = hazelcast.HazelcastClient(
-    cluster_name="dev",
-    cluster_members=[
-        f"{cache_link}:5701"
-    ]
-)
-hz_map = client.get_map("api-cache").blocking()
+# client = hazelcast.HazelcastClient(
+#     cluster_name="dev",
+#     cluster_members=[
+#         f"{cache_link}:5701"
+#     ]
+# )
+# hz_map = client.get_map("api-cache").blocking()
 
 # Initialize Circuit Breaker
 re_route_counter = {}
@@ -48,15 +48,84 @@ cache_misses = 0
 CACHE_HITS = Counter('api_gateway_cache_hits', 'Total number of cache hits')
 CACHE_MISSES = Counter('api_gateway_cache_misses', 'Total number of cache misses')
 CACHE_HIT_RATE = Gauge('api_gateway_cache_hit_rate', 'Cache hit rate')
-REQUEST_COUNTER = Counter('api_gateway_total_requests', 'Total number of requests handled by the api gateway', ['method', 'endpoint'])
-REQUEST_LATENCY = Histogram('api_gateway_request_latency_seconds', 'Histogram of latencies for requests', ['method', 'endpoint'])
-ERROR_REQUESTS = Counter('api_gateway_error_requests', 'Total number of error requests', ['method', 'endpoint', 'http_status'])
+REQUEST_COUNTER = Counter('api_gateway_total_requests', 'Total number of requests handled by the api gateway',
+                          ['method', 'endpoint'])
+REQUEST_LATENCY = Histogram('api_gateway_request_latency_seconds', 'Histogram of latencies for requests',
+                            ['method', 'endpoint'])
+ERROR_REQUESTS = Counter('api_gateway_error_requests', 'Total number of error requests',
+                         ['method', 'endpoint', 'http_status'])
 
 # Service registry for local service discovery
 service_registry = {
     "inventory": deque([f"http://{inventory_link}/api/inventory"]),
     "order": deque([f"http://{order_link}/api/order"]),
 }
+
+
+#region SAGA
+@app.route('/api/saga/execute_order', methods=['POST'])
+def execute_order_saga():
+    try:
+        order_data = request.json
+        item_id = int(order_data["ItemId"])
+
+        # Step 1: Create Order
+        order_response = create_order(order_data)
+        if order_response.status_code != 200:
+            raise Exception('Order creation failed')
+
+        # Extract order ID or relevant data from order_response if needed
+        order_model = json.loads(order_response.text)
+        order_id = int(order_model["id"])
+
+        # Step 2: Reserve Inventory
+        inventory_response = reserve_inventory(item_id)
+        if inventory_response.status_code != 200:
+            # Compensate for Order Creation
+            rollback_order(order_id)
+            raise Exception('Inventory reservation failed')
+
+        # Step 3: Mark Order as Paid and Reserved
+        update_order_response = complete_order(order_id)
+        if update_order_response.status_code != 200:
+            # Compensate for Inventory Reservation
+            release_inventory(order_data)
+            # Compensate for Order Creation
+            rollback_order(order_id)
+            raise Exception('Order update failed')
+
+        return jsonify({"status": "success", "data": "Order processed successfully"}), 200
+
+    except Exception as e:
+        logging.error(f'Saga Execution Failed: {str(e)}')
+        return jsonify({"error": "Saga execution failed", "details": str(e)}), 500
+
+
+def create_order(data):
+    service_url = discover_service("order")
+    return perform_request(f'{service_url}/saga/create', 'POST', data)
+
+
+def complete_order(data):
+    service_url = discover_service("order")
+    return requests.post(f'{service_url}/saga/complete/{data}', timeout=15)
+
+
+def rollback_order(order_id):
+    service_url = discover_service("order")
+    return requests.post(f'{service_url}/saga/rollback/{order_id}', timeout=15)
+
+
+def reserve_inventory(item_id):
+    service_url = discover_service("inventory")
+    return requests.post(f'{service_url}/reserve/{item_id}', timeout=15)
+
+
+def release_inventory(item_id):
+    service_url = discover_service("inventory")
+    return requests.post(f'{service_url}/saga/release/{item_id}', timeout=15)
+
+#endregion
 
 
 def handle_json_response(response):
@@ -107,7 +176,7 @@ def status():
 @app.route('/clear_cache')
 def clear_cache():
     try:
-        hz_map.clear()
+        # hz_map.clear()
         return 'Flushed all cache keys', 200
     except Exception as e:
         return f"An error occurred: {str(e)}", 500
@@ -116,13 +185,13 @@ def clear_cache():
 @breaker
 def perform_request(url, method, params=None):
     if method == 'GET':
-        return requests.get(url, params=params, timeout=5)
+        return requests.get(url, params=params, timeout=15)
     elif method == 'POST':
-        return requests.post(url, json=request.json, timeout=5)
+        return requests.post(url, json=request.json, timeout=15)
     elif method == 'PUT':
-        return requests.put(url, json=request.json, timeout=5)
+        return requests.put(url, json=request.json, timeout=15)
     elif method == 'DELETE':
-        return requests.delete(url, timeout=5)
+        return requests.delete(url, timeout=15)
 
 
 @app.route('/api/<service>/<action>', methods=['GET', 'POST', 'PUT', 'DELETE'])
@@ -142,25 +211,25 @@ def generic_service(service, action):
             logging.error(f'Service {service} not found')
             return jsonify({"error": "Service not found"}), 404
 
-        if request.method in ['POST', 'PUT', 'DELETE']:
-            hz_map.delete(cache_key(service, action))
+        # if request.method in ['POST', 'PUT', 'DELETE']:
+            # hz_map.delete(cache_key(service, action))
 
         key = cache_key(action, request.args)
 
-        if request.method == 'GET':
-            logging.info("Checking Cache")
-            cached_result = hz_map.get(key)
-            if cached_result is not None:
-                logging.info("Using Cache")
-
-                update_cache_metrics(True)
-
-                # Record request latency
-                REQUEST_LATENCY.labels(request.method, f"/api/{service}/{action}").observe(time.time() - start_time)
-
-                return handle_json_response(cached_result)
-            else:
-                update_cache_metrics(False)
+        # if request.method == 'GET':
+        #     logging.info("Checking Cache")
+        #     cached_result = hz_map.get(key)
+        #     if cached_result is not None:
+        #         logging.info("Using Cache")
+        #
+        #         update_cache_metrics(True)
+        #
+        #         # Record request latency
+        #         REQUEST_LATENCY.labels(request.method, f"/api/{service}/{action}").observe(time.time() - start_time)
+        #
+        #         return handle_json_response(cached_result)
+        #     else:
+        #         update_cache_metrics(False)
 
         response = perform_request(f'{service_url}/{action}', request.method, params=request.args)
 
@@ -169,7 +238,8 @@ def generic_service(service, action):
 
         if 200 <= response.status_code < 300:
             if request.method == 'GET':
-                hz_map.set(key, response.text, ttl=60)  # Cache the new result
+                logging.info("Success")
+                # hz_map.set(key, response.text, ttl=60)  # Cache the new result
         else:
             re_route_counter[service] += 1
 

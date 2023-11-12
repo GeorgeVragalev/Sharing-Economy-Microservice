@@ -9,7 +9,7 @@ public interface IItemService
     Task<IList<InventoryDAL.Entity.Item>> GetAll();
     Task<IList<InventoryDAL.Entity.Item>> GetFiltered(Expression<Func<InventoryDAL.Entity.Item, bool>> filter);
     Task Insert(InventoryDAL.Entity.Item item);
-    Task Update(int id, InventoryDAL.Entity.Item item);
+    Task Update(InventoryDAL.Entity.Item item);
     Task Delete(int id);
     Task<bool> Reserve(int id);
     Task<bool> ChangeStatus(int id, Status status);
