@@ -58,6 +58,7 @@ service_registry = {
     "order": deque([f"http://{order_link}/api/order"]),
 }
 
+
 def handle_json_response(response):
     try:
         # Attempt to deserialize the content as JSON
@@ -66,6 +67,7 @@ def handle_json_response(response):
         formatted_data = json.dumps(parsed_data, indent=4)
         return formatted_data
     except json.JSONDecodeError:
+        logging.error("Failed to decode json. Returning raw response")
         return response
 
 
@@ -79,7 +81,7 @@ def discover_service(service_name):
     # Increment the re-route counter
     if service_name not in re_route_counter:
         re_route_counter[service_name] = 0
-    re_route_counter[service_name] += 1
+
     return instance
 
 
@@ -146,16 +148,17 @@ def generic_service(service, action):
         key = cache_key(action, request.args)
 
         if request.method == 'GET':
-            key = cache_key(action, request.args)
-            cached_result = hz_map.get(cache_key)
-            logging.info(f"Cached? {cached_result}")
-            if cached_result:
+            logging.info("Checking Cache")
+            cached_result = hz_map.get(key)
+            if cached_result is not None:
+                logging.info("Using Cache")
+
                 update_cache_metrics(True)
 
                 # Record request latency
                 REQUEST_LATENCY.labels(request.method, f"/api/{service}/{action}").observe(time.time() - start_time)
 
-                return handle_json_response(cached_result.decode("utf-8"))
+                return handle_json_response(cached_result)
             else:
                 update_cache_metrics(False)
 
@@ -168,6 +171,8 @@ def generic_service(service, action):
             if request.method == 'GET':
                 hz_map.set(key, response.text, ttl=60)  # Cache the new result
         else:
+            re_route_counter[service] += 1
+
             ERROR_REQUESTS.labels(request.method, f"/api/{service}/{action}", response.status_code).inc()
             logging.error(f'Bad response from service: {response.status_code}, {response.text}')
 
