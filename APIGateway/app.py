@@ -29,13 +29,13 @@ inventory_link = 'inventory-service:80' if isDeployment else 'localhost:5217'
 order_link = 'order-service:80' if isDeployment else 'localhost:5143'
 
 # Initialize Hazelcast Client
-# client = hazelcast.HazelcastClient(
-#     cluster_name="dev",
-#     cluster_members=[
-#         f"{cache_link}:5701"
-#     ]
-# )
-# hz_map = client.get_map("api-cache").blocking()
+client = hazelcast.HazelcastClient(
+    cluster_name="dev",
+    cluster_members=[
+        f"{cache_link}:5701"
+    ]
+)
+hz_map = client.get_map("api-cache").blocking()
 
 # Initialize Circuit Breaker
 re_route_counter = {}
@@ -176,7 +176,7 @@ def status():
 @app.route('/clear_cache')
 def clear_cache():
     try:
-        # hz_map.clear()
+        hz_map.clear()
         return 'Flushed all cache keys', 200
     except Exception as e:
         return f"An error occurred: {str(e)}", 500
@@ -211,25 +211,25 @@ def generic_service(service, action):
             logging.error(f'Service {service} not found')
             return jsonify({"error": "Service not found"}), 404
 
-        # if request.method in ['POST', 'PUT', 'DELETE']:
-            # hz_map.delete(cache_key(service, action))
+        if request.method in ['POST', 'PUT', 'DELETE']:
+            hz_map.delete(cache_key(service, action))
 
         key = cache_key(action, request.args)
 
-        # if request.method == 'GET':
-        #     logging.info("Checking Cache")
-        #     cached_result = hz_map.get(key)
-        #     if cached_result is not None:
-        #         logging.info("Using Cache")
-        #
-        #         update_cache_metrics(True)
-        #
-        #         # Record request latency
-        #         REQUEST_LATENCY.labels(request.method, f"/api/{service}/{action}").observe(time.time() - start_time)
-        #
-        #         return handle_json_response(cached_result)
-        #     else:
-        #         update_cache_metrics(False)
+        if request.method == 'GET':
+            logging.info("Checking Cache")
+            cached_result = hz_map.get(key)
+            if cached_result is not None:
+                logging.info("Using Cache")
+
+                update_cache_metrics(True)
+
+                # Record request latency
+                REQUEST_LATENCY.labels(request.method, f"/api/{service}/{action}").observe(time.time() - start_time)
+
+                return handle_json_response(cached_result)
+            else:
+                update_cache_metrics(False)
 
         response = perform_request(f'{service_url}/{action}', request.method, params=request.args)
 
@@ -239,7 +239,7 @@ def generic_service(service, action):
         if 200 <= response.status_code < 300:
             if request.method == 'GET':
                 logging.info("Success")
-                # hz_map.set(key, response.text, ttl=60)  # Cache the new result
+                hz_map.set(key, response.text, ttl=60)  # Cache the new result
         else:
             re_route_counter[service] += 1
 
