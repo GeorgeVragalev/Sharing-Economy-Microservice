@@ -1,0 +1,17 @@
+apiVersion: "acid.zalan.do/v1"
+kind: postgresql
+metadata:
+  name: order-db-cluster
+  namespace: default  # Change this if you have a specific namespace for your services
+spec:
+  teamId: "order-service"  # Ensure this is aligned with your organizational practices
+  volume:
+    size: 10Gi  # Adjust as needed based on your data requirements
+  numberOfInstances: 4  # This provides one primary and three replicas
+  users:
+    postgres: ["superuser", "createdb"]  # Assign rights as necessary
+    # Define additional users if required by your application
+  databases:
+    OrderAPI: postgres  # Database names are usually lowercase in PostgreSQL
+  postgresql:
+    version: "13"  # Use a valid version supported by the operator
