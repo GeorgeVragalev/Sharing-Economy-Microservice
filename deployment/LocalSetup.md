@@ -50,6 +50,7 @@ kubectl apply -f apigateway-service.yaml
 kubectl apply -f apigateway-deployment.yaml
 
 # For Redis:
+kubectl apply -f redis-configmap.yaml
 kubectl apply -f redis-service.yaml
 kubectl apply -f redis-deployment.yaml
 
@@ -97,6 +98,7 @@ kubectl delete -f apigateway-service.yaml
 # For Redis:
 kubectl delete -f redis-deployment.yaml
 kubectl delete -f redis-service.yaml
+kubectl delete -f redis-configmap.yaml
 
 # For the Inventory microservice:
 kubectl delete -f inventory-deployment.yaml
