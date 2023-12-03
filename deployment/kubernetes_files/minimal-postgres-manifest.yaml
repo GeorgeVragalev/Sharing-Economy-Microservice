@@ -9,9 +9,10 @@ spec:
     size: 10Gi  # Adjust as needed based on your data requirements
   numberOfInstances: 4  # This provides one primary and three replicas
   users:
-    postgres: ["superuser", "createdb"]  # Assign rights as necessary
+    postgres: ["superuser", "createdb","createrole","inherit","login","replication","bypassrls"]  # Assign rights as necessary
     # Define additional users if required by your application
   databases:
     OrderAPI: postgres  # Database names are usually lowercase in PostgreSQL
   postgresql:
     version: "13"  # Use a valid version supported by the operator
+  

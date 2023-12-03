@@ -53,16 +53,17 @@ kubectl apply -f inventory-service.yaml
 kubectl apply -f inventory-deployment.yaml
 
 # For the Order microservice:
-kubectl delete -f order-deployment.yaml
-kubectl delete -f order-service.yaml
+kubectl apply -f order-deployment.yaml
+kubectl apply -f order-service.yaml
 
-kubectl delete -f configmap.yaml  # configuration
-kubectl delete -f operator-service-account-rbac.yaml  # identity and permissions
-kubectl delete -f postgres-operator.yaml  # deployment
-kubectl delete -f api-service.yaml  # operator API to be used by UI
+kubectl apply -f configmap.yaml  # configuration
+kubectl apply -f operator-service-account-rbac.yaml  # identity and permissions
+kubectl apply -f postgres-operator.yaml  # deployment
+kubectl apply -f api-service.yaml  # operator API to be used by UI
+kubectl apply -f minimal-postgres-manifest.yaml
 
 # For Redis:
-kubectl apply -f redis-configmap.yaml
+#kubectl apply -f redis-configmap.yaml
 kubectl apply -f redis-service.yaml
 kubectl apply -f redis-deployment.yaml
 
@@ -99,7 +100,7 @@ kubectl delete -f apigateway-service.yaml
 # For Redis:
 kubectl delete -f redis-deployment.yaml
 kubectl delete -f redis-service.yaml
-kubectl delete -f redis-configmap.yaml
+#kubectl delete -f redis-configmap.yaml
 
 # For the Inventory microservice:
 kubectl delete -f inventory-deployment.yaml
@@ -116,17 +117,19 @@ kubectl delete -f configmap.yaml  # configuration
 kubectl delete -f operator-service-account-rbac.yaml  # identity and permissions
 kubectl delete -f postgres-operator.yaml  # deployment
 kubectl delete -f api-service.yaml  # operator API to be used by UI
+kubectl delete -f minimal-postgres-manifest.yaml
 ```
 
 Deploy Zolando Postgres Operator:
-
-kubectl create -f minimal-postgres-manifest.yaml
 
 ```bash
     kubectl create -f configmap.yaml  # configuration
     kubectl create -f operator-service-account-rbac.yaml  # identity and permissions
     kubectl create -f postgres-operator.yaml  # deployment
     kubectl create -f api-service.yaml  # operator API to be used by UI
+    
+    # Create a minimal Postgres manifest
+    kubectl create -f minimal-postgres-manifest.yaml
 ```
 
 ### 4. Accessing the Services
@@ -138,8 +141,12 @@ Since we are using local deployment, we'll use port-forward to access the API Ga
 ```bash
 kubectl port-forward svc/api-gateway-service 5000:5000
 
+kubectl port-forward service/prometheus-service 9090
 kubectl port-forward service/grafana-service 3000
 ```
+##### Login for grafana: 
+* email: admin
+* password: secret
 
 You can now access the API Gateway on [http://localhost:5000/](http://localhost:5000/).
 
