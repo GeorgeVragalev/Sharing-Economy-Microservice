@@ -157,3 +157,35 @@ Implementation:
 I've opted for [Google BigQuery/Oracle Cloud's free tier] or any one of them that is free.
 Post-setup, an ETL (Extract, Transform, Load) process has been established. 
 It periodically pulls data from our microservices' databases, updating our data warehouse.
+
+
+### Setting up cache on docker
+Create the files in the volumes with full permissions and map them to the docker directory
+```bash
+New-Item -ItemType Directory -Force -Path .\redis-data\node1
+New-Item -ItemType Directory -Force -Path .\redis-data\node2
+New-Item -ItemType Directory -Force -Path .\redis-data\node3
+
+New-Item -ItemType File -Force -Path .\redis-data\node1\nodes.conf
+New-Item -ItemType File -Force -Path .\redis-data\node2\nodes.conf
+New-Item -ItemType File -Force -Path .\redis-data\node3\nodes.conf
+
+icacls .\redis-data\node1\nodes.conf /grant Everyone:F
+icacls .\redis-data\node2\nodes.conf /grant Everyone:F
+icacls .\redis-data\node3\nodes.conf /grant Everyone:F
+```
+
+Initialize the redis cluster
+```bash
+docker exec -it redis-node1 redis-cli --cluster create redis-node1:6379 redis-node2:6379 redis-node3:6379 --cluster-replicas 0
+```
+
+Inspect the network to check the ip addresses of the nodes
+```bash
+docker network inspect  sharing-economy-microservice_shared_app_network
+```
+
+Get the cluster nodes status
+```bash
+docker exec -it redis-node1 redis-cli -c -p 6379 cluster nodes
+```
