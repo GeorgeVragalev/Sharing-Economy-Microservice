@@ -59,14 +59,14 @@ kubectl apply -f order-db-deployment.yaml
 kubectl apply -f order-service.yaml
 kubectl apply -f order-deployment.yaml
 
-# For the API Gateway:
-kubectl apply -f apigateway-service.yaml
-kubectl apply -f apigateway-deployment.yaml
-
 # For Redis:
 kubectl apply -f redis-configmap.yaml
 kubectl apply -f redis-service.yaml
 kubectl apply -f redis-deployment.yaml
+
+# For the API Gateway:
+kubectl apply -f apigateway-service.yaml
+kubectl apply -f apigateway-deployment.yaml
 
 #Prometheus and Grafana
 kubectl apply -f prometheus-pvc.yaml
