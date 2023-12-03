@@ -29,9 +29,9 @@ order_link = 'order-service:80' if isDeployment else 'localhost:5143'
 
 # Initialize Redis
 redis_nodes = [
-    {"host": "redis-node1", "port": "6379"},
-    {"host": "redis-node2", "port": "6379"},
-    {"host": "redis-node3", "port": "6379"}
+    {"host": "redis-0", "port": "6379"},
+    {"host": "redis-1", "port": "6379"},
+    {"host": "redis-2", "port": "6379"}
 ]
 r = RedisCluster(startup_nodes=redis_nodes, decode_responses=True, skip_full_coverage_check=True)
 

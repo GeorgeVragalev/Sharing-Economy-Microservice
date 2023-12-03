@@ -114,6 +114,15 @@ kubectl delete -f order-db-service.yaml
 kubectl delete -f order-db-data-persistentvolumeclaim.yaml
 ```
 
+Deploy Zolando Postgres Operator:
+
+```bash
+    kubectl create -f configmap.yaml  # configuration
+    kubectl create -f operator-service-account-rbac.yaml  # identity and permissions
+    kubectl create -f postgres-operator.yaml  # deployment
+    kubectl create -f api-service.yaml  # operator API to be used by UI
+```
+
 ### 4. Accessing the Services
 
 #### API Gateway
