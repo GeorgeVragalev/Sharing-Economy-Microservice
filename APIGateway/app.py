@@ -12,7 +12,7 @@ import prometheus_client
 from prometheus_client import Counter, Gauge, Histogram
 from requests.exceptions import ConnectionError
 from requests.exceptions import Timeout
-from rediscluster import RedisCluster
+import redis
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -28,12 +28,7 @@ inventory_link = 'inventory-service:80' if isDeployment else 'localhost:5217'
 order_link = 'order-service:80' if isDeployment else 'localhost:5143'
 
 # Initialize Redis
-redis_nodes = [
-    {"host": "redis-0", "port": "6379"},
-    {"host": "redis-1", "port": "6379"},
-    {"host": "redis-2", "port": "6379"}
-]
-r = RedisCluster(startup_nodes=redis_nodes, decode_responses=True, skip_full_coverage_check=True)
+r = redis.Redis(host='redis-service', port=6379, db=0)
 
 # Initialize Circuit Breaker
 re_route_counter = {}

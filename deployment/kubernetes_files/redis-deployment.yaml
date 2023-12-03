@@ -1,10 +1,11 @@
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
-  name: redis
+  name: redis-deployment
+  labels:
+    app: redis
 spec:
-  serviceName: "redis"
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: redis
@@ -14,28 +15,7 @@ spec:
         app: redis
     spec:
       containers:
-        - name: redis
-          image: redis:6.2.5
+        - name: redis-container
+          image: redis:latest
           ports:
             - containerPort: 6379
-          volumeMounts:
-            - name: redis-conf
-              mountPath: /usr/local/etc/redis/redis.conf
-              subPath: redis.conf
-            - name: redis-data
-              mountPath: /data
-      volumes:
-        - name: redis-conf
-          configMap:
-            name: redis-cluster-config
-            items:
-              - key: redis.conf
-                path: redis.conf
-  volumeClaimTemplates:
-    - metadata:
-        name: redis-data
-      spec:
-        accessModes: [ "ReadWriteOnce" ]
-        resources:
-          requests:
-            storage: 1Gi
