@@ -21,22 +21,22 @@ Create new docker images:
 Run docker compose
 Tag images:
 ```bash
-docker tag sharing-economy-microservice-order-service:latest vragalevgeorge/sharing-economy-microservice-order-service:v2
-docker push vragalevgeorge/sharing-economy-microservice-order-service:v2
+docker tag sharing-economy-microservice-order-service:latest vragalevgeorge/sharing-economy-microservice-order-service:v3
+docker push vragalevgeorge/sharing-economy-microservice-order-service:v3
 
-docker tag sharing-economy-microservice-api-gateway:latest vragalevgeorge/sharing-economy-microservice-api-gateway:v2
-docker push vragalevgeorge/sharing-economy-microservice-api-gateway:v2
+docker tag sharing-economy-microservice-api-gateway:latest vragalevgeorge/sharing-economy-microservice-api-gateway:v3
+docker push vragalevgeorge/sharing-economy-microservice-api-gateway:v3
 
-docker tag sharing-economy-microservice-inventory-service:latest vragalevgeorge/sharing-economy-microservice-inventory-service:v2
-docker push vragalevgeorge/sharing-economy-microservice-inventory-service:v2
+docker tag sharing-economy-microservice-inventory-service:latest vragalevgeorge/sharing-economy-microservice-inventory-service:v3
+docker push vragalevgeorge/sharing-economy-microservice-inventory-service:v3
 ```
 
 Ensure that you pull the necessary Docker images:
 
 ```bash
-docker pull vragalevgeorge/sharing-economy-microservice-api-gateway:v2
-docker pull vragalevgeorge/sharing-economy-microservice-inventory-service:v2
-docker pull vragalevgeorge/sharing-economy-microservice-order-service:v2
+docker pull vragalevgeorge/sharing-economy-microservice-api-gateway:v3
+docker pull vragalevgeorge/sharing-economy-microservice-inventory-service:v3
+docker pull vragalevgeorge/sharing-economy-microservice-order-service:v3
 ```
 
 
@@ -45,15 +45,6 @@ docker pull vragalevgeorge/sharing-economy-microservice-order-service:v2
 Deploy the Kubernetes manifests:
 
 ```bash
-# For the API Gateway:
-kubectl apply -f apigateway-service.yaml
-kubectl apply -f apigateway-deployment.yaml
-
-# For Redis:
-kubectl apply -f redis-configmap.yaml
-kubectl apply -f redis-service.yaml
-kubectl apply -f redis-deployment.yaml
-
 # For the Inventory microservice:
 kubectl apply -f inventory-db-data-persistentvolumeclaim.yaml
 kubectl apply -f inventory-db-service.yaml
@@ -68,11 +59,20 @@ kubectl apply -f order-db-deployment.yaml
 kubectl apply -f order-service.yaml
 kubectl apply -f order-deployment.yaml
 
+# For the API Gateway:
+kubectl apply -f apigateway-service.yaml
+kubectl apply -f apigateway-deployment.yaml
+
+# For Redis:
+kubectl apply -f redis-configmap.yaml
+kubectl apply -f redis-service.yaml
+kubectl apply -f redis-deployment.yaml
+
 #Prometheus and Grafana
+kubectl apply -f prometheus-pvc.yaml
 kubectl apply -f prometheus-configmap.yaml
 kubectl apply -f prometheus-deployment.yaml
 kubectl apply -f prometheus-service.yaml
-
 kubectl apply -f grafana-deployment.yaml
 kubectl apply -f grafana-service.yaml
 ```
@@ -86,8 +86,7 @@ Delete the Kubernetes manifests:
 kubectl delete -f prometheus-configmap.yaml
 kubectl delete -f prometheus-deployment.yaml
 kubectl delete -f prometheus-service.yaml
-
-
+kubectl delete -f prometheus-pvc.yaml
 kubectl delete -f grafana-deployment.yaml
 kubectl delete -f grafana-service.yaml
 
