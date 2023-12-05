@@ -118,6 +118,8 @@ kubectl delete -f operator-service-account-rbac.yaml  # identity and permissions
 kubectl delete -f postgres-operator.yaml  # deployment
 kubectl delete -f api-service.yaml  # operator API to be used by UI
 kubectl delete -f minimal-postgres-manifest.yaml
+
+kubectl delete statefulset order-db-cluster
 ```
 
 Deploy Zolando Postgres Operator:
@@ -149,6 +151,8 @@ kubectl port-forward service/grafana-service 3000
 * password: secret
 
 You can now access the API Gateway on [http://localhost:5000/](http://localhost:5000/).
+
+[//]: # (kubectl exec -it redis-cluster-0 -n redis -- redis-cli --cluster create 10.1.0.128:6379 10.1.0.131:6379 10.1.0.134:6379 --cluster-replicas 1)
 
 #### !!! Use the attached Postman collection to test. !!!
 

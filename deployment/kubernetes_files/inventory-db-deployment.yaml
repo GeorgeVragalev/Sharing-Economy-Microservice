@@ -39,5 +39,6 @@ spec:
             periodSeconds: 20
       volumes:
         - name: postgres-storage
-          persistentVolumeClaim:
-            claimName: inventory-db-pvc
+#          persistentVolumeClaim:
+#            claimName: inventory-db-pvc
+# works without PVC
