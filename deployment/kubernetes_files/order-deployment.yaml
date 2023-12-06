@@ -19,7 +19,7 @@ spec:
             - containerPort: 80
           env:
             - name: ConnectionStrings__DefaultConnection
-              value: "Host=order-db-cluster;Username=postgres;Password=postgres;Port=5432;Database=OrderAPI;Pooling=true;"
+              value: "Host=order-db;Username=postgres;Password=postgres;Port=5432;Database=OrderAPI;Pooling=true;"
             - name: ASPNETCORE_URLS
               value: "http://+:80"
           readinessProbe:

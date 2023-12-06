@@ -56,11 +56,9 @@ kubectl apply -f inventory-deployment.yaml
 kubectl apply -f order-deployment.yaml
 kubectl apply -f order-service.yaml
 
-kubectl apply -f configmap.yaml  # configuration
-kubectl apply -f operator-service-account-rbac.yaml  # identity and permissions
-kubectl apply -f postgres-operator.yaml  # deployment
-kubectl apply -f api-service.yaml  # operator API to be used by UI
-kubectl apply -f minimal-postgres-manifest.yaml
+kubectl apply -f db-creds.yaml
+kubectl apply -f warm.yaml  # identity and permissions
+kubectl apply -f hot.yaml  # configuration
 
 # For Redis:
 #kubectl apply -f redis-configmap.yaml
@@ -113,13 +111,9 @@ kubectl delete -f inventory-db-data-persistentvolumeclaim.yaml
 kubectl delete -f order-deployment.yaml
 kubectl delete -f order-service.yaml
 
-kubectl delete -f configmap.yaml  # configuration
-kubectl delete -f operator-service-account-rbac.yaml  # identity and permissions
-kubectl delete -f postgres-operator.yaml  # deployment
-kubectl delete -f api-service.yaml  # operator API to be used by UI
-kubectl delete -f minimal-postgres-manifest.yaml
-
-kubectl delete statefulset order-db-cluster
+kubectl delete -f db-creds.yaml
+kubectl delete -f warm.yaml  # identity and permissions
+kubectl delete -f hot.yaml  # configuration
 ```
 
 Deploy Zolando Postgres Operator:

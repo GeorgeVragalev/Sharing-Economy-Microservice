@@ -1,0 +1,20 @@
+﻿apiVersion: kubedb.com/v1alpha2
+kind: Postgres
+metadata:
+  name: order-db
+  namespace: demo
+spec:
+  version: "12.1"  # specify the desired PostgreSQL version
+  replicas: 3      # number of replicas for HA
+  standbyMode: Hot # enable hot standby
+  streamingMode: asynchronous
+  authSecret:
+    name: db-creds
+  storageType: Durable
+  storage:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+  terminationPolicy: WipeOut
