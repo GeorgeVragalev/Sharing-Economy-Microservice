@@ -135,6 +135,25 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "Metrics",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:5217/metrics",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5217",
+									"path": [
+										"metrics"
+									]
+								}
+							},
+							"response": []
 						}
 					]
 				},
@@ -305,6 +324,25 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "Metrics",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:5217/metrics",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5217",
+									"path": [
+										"metrics"
+									]
+								}
+							},
+							"response": []
 						}
 					]
 				},
@@ -344,6 +382,74 @@
 									"port": "5000",
 									"path": [
 										"clear_cache"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Metrics",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:5000/metrics",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5000",
+									"path": [
+										"metrics"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Place Order SAGA",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"UserId\": 1,\r\n  \"ItemId\": 3,\r\n  \"Description\": \"johndoe1\",\r\n  \"ReservationPeriod\": \"01:00:00\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:5000/api/order/create",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5000",
+									"path": [
+										"api",
+										"order",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Prometheus",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:5000/metrics",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5000",
+									"path": [
+										"metrics"
 									]
 								}
 							},
