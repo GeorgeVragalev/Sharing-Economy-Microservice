@@ -21,14 +21,14 @@ Create new docker images:
 Run docker compose
 Tag images:
 ```bash
-docker tag sharing-economy-microservice-order-service:latest vragalevgeorge/sharing-economy-microservice-order-service:v3
-docker push vragalevgeorge/sharing-economy-microservice-order-service:v3
+docker tag trailermicroservice-order-service:latest vragalevgeorge/sharing-economy-microservice-order-service:v4
+docker push vragalevgeorge/sharing-economy-microservice-order-service:v4
 
-docker tag sharing-economy-microservice-api-gateway:latest vragalevgeorge/sharing-economy-microservice-api-gateway:v3
-docker push vragalevgeorge/sharing-economy-microservice-api-gateway:v3
+docker tag trailermicroservice-api-gateway:latest vragalevgeorge/sharing-economy-microservice-api-gateway:v4
+docker push vragalevgeorge/sharing-economy-microservice-api-gateway:v4
 
-docker tag sharing-economy-microservice-inventory-service:latest vragalevgeorge/sharing-economy-microservice-inventory-service:v3
-docker push vragalevgeorge/sharing-economy-microservice-inventory-service:v3
+docker tag trailermicroservice-inventory-service:latest vragalevgeorge/sharing-economy-microservice-inventory-service:v4
+docker push vragalevgeorge/sharing-economy-microservice-inventory-service:v4
 ```
 
 Ensure that you pull the necessary Docker images:

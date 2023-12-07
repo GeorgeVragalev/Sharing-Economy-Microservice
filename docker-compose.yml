@@ -62,37 +62,14 @@ services:
     networks:
       - shared_app_network
 
-  redis-node1:
+  redis-service:
     image: "redis:latest"
-    container_name: "redis-node1"
-    user: "redis"
-    command: redis-server --appendonly yes --cluster-enabled yes --cluster-config-file /usr/local/etc/redis/nodes.conf --cluster-node-timeout 5000 --port 6379
+    container_name: "redis"
     ports:
       - "6379:6379"
-    volumes:
-      - ./redis-data/node1:/usr/local/etc/redis
     networks:
       - shared_app_network
 
-  redis-node2:
-    image: "redis:latest"
-    container_name: "redis-node2"
-    user: "redis"
-    command: redis-server --appendonly yes --cluster-enabled yes --cluster-config-file /usr/local/etc/redis/nodes.conf --cluster-node-timeout 5000 --port 6379
-    volumes:
-      - ./redis-data/node2:/usr/local/etc/redis
-    networks:
-      - shared_app_network
-
-  redis-node3:
-    image: "redis:latest"
-    container_name: "redis-node3"
-    user: "redis"
-    command: redis-server --appendonly yes --cluster-enabled yes --cluster-config-file /usr/local/etc/redis/nodes.conf --cluster-node-timeout 5000 --port 6379
-    volumes:
-      - ./redis-data/node3:/usr/local/etc/redis
-    networks:
-      - shared_app_network
 
   api-gateway:
     container_name: "api-gateway"
@@ -106,9 +83,7 @@ services:
     depends_on:
       - inventory-service
       - order-service
-      - redis-node1
-      - redis-node2
-      - redis-node3
+      - redis-service
     networks:
       - shared_app_network
 

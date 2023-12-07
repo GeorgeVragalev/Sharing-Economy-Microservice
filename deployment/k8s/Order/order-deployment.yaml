@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: order-service
-          image: vragalevgeorge/sharing-economy-microservice-order-service:v3
+          image: vragalevgeorge/sharing-economy-microservice-order-service:v4
           ports:
             - containerPort: 80
           env:
