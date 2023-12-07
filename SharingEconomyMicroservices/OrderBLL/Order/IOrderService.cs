@@ -10,7 +10,7 @@ public interface IOrderService
     Task<IList<OrderDAL.Entity.Order>> GetAll();
     Task<IList<OrderDAL.Entity.Order>> GetFiltered(Expression<Func<OrderDAL.Entity.Order, bool>> filter);
     Task Insert(OrderDAL.Entity.Order order);
-    Task Update(int id, OrderDAL.Entity.Order order);
+    Task Update(OrderDAL.Entity.Order order);
     Task Delete(int id);
     Task<ResponseMessage> PlaceOrder(OrderDAL.Entity.Order order);
     Task<bool> ChangeStatus(int id, OrderStatus status);

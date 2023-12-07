@@ -98,7 +98,7 @@ public class InventoryController : ControllerBase
 
             _mapper.Map(itemModel, itemInDb);
 
-            await _itemService.Update(id, itemInDb);
+            await _itemService.Update(itemInDb);
 
             return Ok(itemModel);
         }
@@ -133,8 +133,34 @@ public class InventoryController : ControllerBase
 
     #endregion
 
-    [HttpPost("reserve")]
-    public async Task<IActionResult> Reserve([FromBody] int id)
+    [HttpPost("saga/release/{id}")]
+    public async Task<IActionResult> ReleaseItemSaga(int id)
+    {
+        try
+        {
+            var item = await _itemService.GetById(id);
+            
+            if (item == null)
+            {
+                _logger.LogWarning("Item doesn't exist");
+                return NotFound("Item doesn't exist");
+            }
+            
+            item.Status = InventoryDAL.Entity.Enums.Status.Available;
+
+            await _itemService.Update(item);
+            
+            return Ok($"Rollback item {id} status to {InventoryDAL.Entity.Enums.Status.Available}");
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning("Failed to rollback release the item", e);
+            return Problem($"Failed to rollback release the item. {e.Message}");
+        }
+    }
+
+    [HttpPost("reserve/{id}")]
+    public async Task<IActionResult> Reserve(int id)
     {
         return await ChangeStatus(id, InventoryDAL.Entity.Enums.Status.Reserved);
     }

@@ -5,6 +5,7 @@ using OrderAPI.Models;
 using OrderAPI.Validations;
 using OrderBLL.Order;
 using OrderDAL.Entity;
+using OrderDAL.Entity.Enums;
 using OrderDAL.Exceptions;
 
 namespace OrderAPI.Controllers;
@@ -83,6 +84,87 @@ public class OrderController : ControllerBase
             return Problem($"Couldn't place order. {e.Message}");
         }
     }
+    
+    [HttpPost("saga/create")]
+    public async Task<ActionResult<Order>> CreateOrderSaga([FromBody] PlaceOrderRequestModel orderRequestModel)
+    {
+        try
+        {
+            var orderValidation = new OrderValidation();
+
+            var validationResult = await orderValidation.ValidateAsync(orderRequestModel);
+
+            if (!validationResult.IsValid)
+                return BadRequest(validationResult.Errors);
+
+            var order = _mapper.Map<PlaceOrderRequestModel, Order>(orderRequestModel);
+
+            order.MapOrder(orderRequestModel);
+
+            order.OrderStatus = OrderStatus.Processing;
+            
+            await _orderService.Insert(order);
+            
+            var orderModel = _mapper.Map<Order, OrderModel>(order);
+            
+            return Ok(orderModel);
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning($"Couldn't create order saga", e);
+            return Problem($"Couldn't create order saga. {e.Message}");
+        }
+    }
+    
+    [HttpPost("saga/complete/{orderId}")]
+    public async Task<ActionResult<Order>> CompleteOrderSaga(int orderId)
+    {
+        try
+        {
+            var order = await _orderService.GetById(orderId);
+
+            if (order == null)
+            {
+                _logger.LogWarning($"Order with {orderId} doesn't exist");
+                return NotFound($"Order with id {orderId} doesn't exist");
+            }
+            
+            order.OrderStatus = OrderStatus.Reserved;
+            
+            await _orderService.Update(order);
+
+            return Ok(order);
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning($"Couldn't complete order saga", e);
+            return Problem($"Couldn't complete order saga. {e.Message}");
+        }
+    }
+    
+    [HttpPost("saga/rollback/{orderId}")]
+    public async Task<ActionResult<Order>> RollbackOrderSaga(int orderId)
+    {
+        try
+        {
+            var order = await _orderService.GetById(orderId);
+
+            if (order == null)
+            {
+                _logger.LogWarning($"Order with {orderId} doesn't exist");
+                return NotFound($"Order with id {orderId} doesn't exist");
+            }
+            
+            await _orderService.Delete(orderId);
+
+            return Ok(order);
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning($"Couldn't rollback order", e);
+            return Problem($"Couldn't rollback order. {e.Message}");
+        }
+    }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Update([FromBody] OrderModel orderModel, int id)
@@ -99,7 +181,7 @@ public class OrderController : ControllerBase
 
             _mapper.Map(orderModel, orderInDb);
 
-            await _orderService.Update(id, orderInDb);
+            await _orderService.Update(orderInDb);
 
             return Ok(orderModel);
         }

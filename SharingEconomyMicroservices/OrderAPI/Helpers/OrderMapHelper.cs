@@ -10,5 +10,5 @@ public static class OrderMapHelper
         order.StartTime = DateTime.UtcNow;
         order.EndTime = order.StartTime.Add(requestModel.ReservationPeriod);
         return order;
-    } 
+    }
 }

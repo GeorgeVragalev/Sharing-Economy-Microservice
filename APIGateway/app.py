@@ -52,6 +52,72 @@ service_registry = {
 }
 
 
+#region SAGA
+@app.route('/api/saga/execute_order', methods=['POST'])
+def execute_order_saga():
+    try:
+        order_data = request.json
+        item_id = int(order_data["ItemId"])
+
+        # Step 1: Create Order
+        order_response = create_order(order_data)
+        if order_response.status_code != 200:
+            raise Exception('Order creation failed')
+
+        # Extract order ID or relevant data from order_response if needed
+        order_model = json.loads(order_response.text)
+        order_id = int(order_model["id"])
+
+        # Step 2: Reserve Inventory
+        inventory_response = reserve_inventory(item_id)
+        if inventory_response.status_code != 200:
+            # Compensate for Order Creation
+            rollback_order(order_id)
+            raise Exception('Inventory reservation failed')
+
+        # Step 3: Mark Order as Paid and Reserved
+        update_order_response = complete_order(order_id)
+        if update_order_response.status_code != 200:
+            # Compensate for Inventory Reservation
+            release_inventory(order_data)
+            # Compensate for Order Creation
+            rollback_order(order_id)
+            raise Exception('Order update failed')
+
+        return jsonify({"status": "success", "data": "Order processed successfully"}), 200
+
+    except Exception as e:
+        logging.error(f'Saga Execution Failed: {str(e)}')
+        return jsonify({"error": "Saga execution failed", "details": str(e)}), 500
+
+
+def create_order(data):
+    service_url = discover_service("order")
+    return perform_request(f'{service_url}/saga/create', 'POST', data)
+
+
+def complete_order(data):
+    service_url = discover_service("order")
+    return requests.post(f'{service_url}/saga/complete/{data}', timeout=15)
+
+
+def rollback_order(order_id):
+    service_url = discover_service("order")
+    return requests.post(f'{service_url}/saga/rollback/{order_id}', timeout=15)
+
+
+def reserve_inventory(item_id):
+    service_url = discover_service("inventory")
+    return requests.post(f'{service_url}/reserve/{item_id}', timeout=15)
+
+
+def release_inventory(item_id):
+    service_url = discover_service("inventory")
+    return requests.post(f'{service_url}/saga/release/{item_id}', timeout=15)
+
+#endregion
+
+
 def handle_json_response(response):
     try:
         # Attempt to deserialize the content as JSON
