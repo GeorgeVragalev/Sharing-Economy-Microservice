@@ -78,7 +78,7 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
             throw new ArgumentNullException(nameof(item));
         }
         
-        item.UpdatedOnUtc = DateTime.Now;
+        item.UpdatedOnUtc = DateTime.UtcNow;
         _orderDbContext.Entry(item).State = EntityState.Modified;
         await _orderDbContext.SaveChangesAsync();
     }

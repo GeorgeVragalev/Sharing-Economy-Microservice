@@ -2,9 +2,8 @@
 
 namespace UnitTests.Tool;
 
-public class AppDbContextTests : TestWithPostgres<InventoryDbContext>
+public class InventoryDbContextTest : TestWithInventoryPostgres<InventoryDbContext>
 {
-
     [Fact]
     public void CanConnect_ReturnTrue_AppDbContext()
     {
